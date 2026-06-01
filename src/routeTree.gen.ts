@@ -9,38 +9,416 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as EnterpriseRouteImport } from './routes/enterprise'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppValidationRouteImport } from './routes/app.validation'
+import { Route as AppTeamRouteImport } from './routes/app.team'
+import { Route as AppTaskCenterRouteImport } from './routes/app.task-center'
+import { Route as AppSupportRouteImport } from './routes/app.support'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppRoadmapRouteImport } from './routes/app.roadmap'
+import { Route as AppProjectsRouteImport } from './routes/app.projects'
+import { Route as AppPlanRouteImport } from './routes/app.plan'
+import { Route as AppPitchRouteImport } from './routes/app.pitch'
+import { Route as AppMvpBuilderRouteImport } from './routes/app.mvp-builder'
+import { Route as AppMarketingRouteImport } from './routes/app.marketing'
+import { Route as AppIntegrationsRouteImport } from './routes/app.integrations'
+import { Route as AppIdeaLabRouteImport } from './routes/app.idea-lab'
+import { Route as AppFundingRouteImport } from './routes/app.funding'
+import { Route as AppFounderGuardRouteImport } from './routes/app.founder-guard'
+import { Route as AppFinanceRouteImport } from './routes/app.finance'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppCoFounderRouteImport } from './routes/app.co-founder'
+import { Route as AppBusinessModelRouteImport } from './routes/app.business-model'
+import { Route as AppBudgetGuardRouteImport } from './routes/app.budget-guard'
+import { Route as AppBrandStudioRouteImport } from './routes/app.brand-studio'
+import { Route as AppBlueprintRouteImport } from './routes/app.blueprint'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnterpriseRoute = EnterpriseRouteImport.update({
+  id: '/enterprise',
+  path: '/enterprise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppValidationRoute = AppValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTaskCenterRoute = AppTaskCenterRouteImport.update({
+  id: '/task-center',
+  path: '/task-center',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSupportRoute = AppSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRoadmapRoute = AppRoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjectsRoute = AppProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlanRoute = AppPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPitchRoute = AppPitchRouteImport.update({
+  id: '/pitch',
+  path: '/pitch',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMvpBuilderRoute = AppMvpBuilderRouteImport.update({
+  id: '/mvp-builder',
+  path: '/mvp-builder',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarketingRoute = AppMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIntegrationsRoute = AppIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIdeaLabRoute = AppIdeaLabRouteImport.update({
+  id: '/idea-lab',
+  path: '/idea-lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFundingRoute = AppFundingRouteImport.update({
+  id: '/funding',
+  path: '/funding',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFounderGuardRoute = AppFounderGuardRouteImport.update({
+  id: '/founder-guard',
+  path: '/founder-guard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFinanceRoute = AppFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoFounderRoute = AppCoFounderRouteImport.update({
+  id: '/co-founder',
+  path: '/co-founder',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBusinessModelRoute = AppBusinessModelRouteImport.update({
+  id: '/business-model',
+  path: '/business-model',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBudgetGuardRoute = AppBudgetGuardRouteImport.update({
+  id: '/budget-guard',
+  path: '/budget-guard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBrandStudioRoute = AppBrandStudioRouteImport.update({
+  id: '/brand-studio',
+  path: '/brand-studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBlueprintRoute = AppBlueprintRouteImport.update({
+  id: '/blueprint',
+  path: '/blueprint',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/enterprise': typeof EnterpriseRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
+  '/app/blueprint': typeof AppBlueprintRoute
+  '/app/brand-studio': typeof AppBrandStudioRoute
+  '/app/budget-guard': typeof AppBudgetGuardRoute
+  '/app/business-model': typeof AppBusinessModelRoute
+  '/app/co-founder': typeof AppCoFounderRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/finance': typeof AppFinanceRoute
+  '/app/founder-guard': typeof AppFounderGuardRoute
+  '/app/funding': typeof AppFundingRoute
+  '/app/idea-lab': typeof AppIdeaLabRoute
+  '/app/integrations': typeof AppIntegrationsRoute
+  '/app/marketing': typeof AppMarketingRoute
+  '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/pitch': typeof AppPitchRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/projects': typeof AppProjectsRoute
+  '/app/roadmap': typeof AppRoadmapRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
+  '/app/task-center': typeof AppTaskCenterRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/validation': typeof AppValidationRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/enterprise': typeof EnterpriseRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
+  '/app/blueprint': typeof AppBlueprintRoute
+  '/app/brand-studio': typeof AppBrandStudioRoute
+  '/app/budget-guard': typeof AppBudgetGuardRoute
+  '/app/business-model': typeof AppBusinessModelRoute
+  '/app/co-founder': typeof AppCoFounderRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/finance': typeof AppFinanceRoute
+  '/app/founder-guard': typeof AppFounderGuardRoute
+  '/app/funding': typeof AppFundingRoute
+  '/app/idea-lab': typeof AppIdeaLabRoute
+  '/app/integrations': typeof AppIntegrationsRoute
+  '/app/marketing': typeof AppMarketingRoute
+  '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/pitch': typeof AppPitchRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/projects': typeof AppProjectsRoute
+  '/app/roadmap': typeof AppRoadmapRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
+  '/app/task-center': typeof AppTaskCenterRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/validation': typeof AppValidationRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/enterprise': typeof EnterpriseRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
+  '/app/blueprint': typeof AppBlueprintRoute
+  '/app/brand-studio': typeof AppBrandStudioRoute
+  '/app/budget-guard': typeof AppBudgetGuardRoute
+  '/app/business-model': typeof AppBusinessModelRoute
+  '/app/co-founder': typeof AppCoFounderRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/finance': typeof AppFinanceRoute
+  '/app/founder-guard': typeof AppFounderGuardRoute
+  '/app/funding': typeof AppFundingRoute
+  '/app/idea-lab': typeof AppIdeaLabRoute
+  '/app/integrations': typeof AppIntegrationsRoute
+  '/app/marketing': typeof AppMarketingRoute
+  '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/pitch': typeof AppPitchRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/projects': typeof AppProjectsRoute
+  '/app/roadmap': typeof AppRoadmapRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
+  '/app/task-center': typeof AppTaskCenterRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/validation': typeof AppValidationRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/enterprise'
+    | '/login'
+    | '/onboarding'
+    | '/signup'
+    | '/app/blueprint'
+    | '/app/brand-studio'
+    | '/app/budget-guard'
+    | '/app/business-model'
+    | '/app/co-founder'
+    | '/app/documents'
+    | '/app/finance'
+    | '/app/founder-guard'
+    | '/app/funding'
+    | '/app/idea-lab'
+    | '/app/integrations'
+    | '/app/marketing'
+    | '/app/mvp-builder'
+    | '/app/pitch'
+    | '/app/plan'
+    | '/app/projects'
+    | '/app/roadmap'
+    | '/app/settings'
+    | '/app/support'
+    | '/app/task-center'
+    | '/app/team'
+    | '/app/validation'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/enterprise'
+    | '/login'
+    | '/onboarding'
+    | '/signup'
+    | '/app/blueprint'
+    | '/app/brand-studio'
+    | '/app/budget-guard'
+    | '/app/business-model'
+    | '/app/co-founder'
+    | '/app/documents'
+    | '/app/finance'
+    | '/app/founder-guard'
+    | '/app/funding'
+    | '/app/idea-lab'
+    | '/app/integrations'
+    | '/app/marketing'
+    | '/app/mvp-builder'
+    | '/app/pitch'
+    | '/app/plan'
+    | '/app/projects'
+    | '/app/roadmap'
+    | '/app/settings'
+    | '/app/support'
+    | '/app/task-center'
+    | '/app/team'
+    | '/app/validation'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/enterprise'
+    | '/login'
+    | '/onboarding'
+    | '/signup'
+    | '/app/blueprint'
+    | '/app/brand-studio'
+    | '/app/budget-guard'
+    | '/app/business-model'
+    | '/app/co-founder'
+    | '/app/documents'
+    | '/app/finance'
+    | '/app/founder-guard'
+    | '/app/funding'
+    | '/app/idea-lab'
+    | '/app/integrations'
+    | '/app/marketing'
+    | '/app/mvp-builder'
+    | '/app/pitch'
+    | '/app/plan'
+    | '/app/projects'
+    | '/app/roadmap'
+    | '/app/settings'
+    | '/app/support'
+    | '/app/task-center'
+    | '/app/team'
+    | '/app/validation'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  EnterpriseRoute: typeof EnterpriseRoute
+  LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enterprise': {
+      id: '/enterprise'
+      path: '/enterprise'
+      fullPath: '/enterprise'
+      preLoaderRoute: typeof EnterpriseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +426,232 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/validation': {
+      id: '/app/validation'
+      path: '/validation'
+      fullPath: '/app/validation'
+      preLoaderRoute: typeof AppValidationRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/team': {
+      id: '/app/team'
+      path: '/team'
+      fullPath: '/app/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/task-center': {
+      id: '/app/task-center'
+      path: '/task-center'
+      fullPath: '/app/task-center'
+      preLoaderRoute: typeof AppTaskCenterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/support': {
+      id: '/app/support'
+      path: '/support'
+      fullPath: '/app/support'
+      preLoaderRoute: typeof AppSupportRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/roadmap': {
+      id: '/app/roadmap'
+      path: '/roadmap'
+      fullPath: '/app/roadmap'
+      preLoaderRoute: typeof AppRoadmapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/projects': {
+      id: '/app/projects'
+      path: '/projects'
+      fullPath: '/app/projects'
+      preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/plan': {
+      id: '/app/plan'
+      path: '/plan'
+      fullPath: '/app/plan'
+      preLoaderRoute: typeof AppPlanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pitch': {
+      id: '/app/pitch'
+      path: '/pitch'
+      fullPath: '/app/pitch'
+      preLoaderRoute: typeof AppPitchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mvp-builder': {
+      id: '/app/mvp-builder'
+      path: '/mvp-builder'
+      fullPath: '/app/mvp-builder'
+      preLoaderRoute: typeof AppMvpBuilderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/marketing': {
+      id: '/app/marketing'
+      path: '/marketing'
+      fullPath: '/app/marketing'
+      preLoaderRoute: typeof AppMarketingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/integrations': {
+      id: '/app/integrations'
+      path: '/integrations'
+      fullPath: '/app/integrations'
+      preLoaderRoute: typeof AppIntegrationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/idea-lab': {
+      id: '/app/idea-lab'
+      path: '/idea-lab'
+      fullPath: '/app/idea-lab'
+      preLoaderRoute: typeof AppIdeaLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/funding': {
+      id: '/app/funding'
+      path: '/funding'
+      fullPath: '/app/funding'
+      preLoaderRoute: typeof AppFundingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/founder-guard': {
+      id: '/app/founder-guard'
+      path: '/founder-guard'
+      fullPath: '/app/founder-guard'
+      preLoaderRoute: typeof AppFounderGuardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/finance': {
+      id: '/app/finance'
+      path: '/finance'
+      fullPath: '/app/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/co-founder': {
+      id: '/app/co-founder'
+      path: '/co-founder'
+      fullPath: '/app/co-founder'
+      preLoaderRoute: typeof AppCoFounderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/business-model': {
+      id: '/app/business-model'
+      path: '/business-model'
+      fullPath: '/app/business-model'
+      preLoaderRoute: typeof AppBusinessModelRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/budget-guard': {
+      id: '/app/budget-guard'
+      path: '/budget-guard'
+      fullPath: '/app/budget-guard'
+      preLoaderRoute: typeof AppBudgetGuardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/brand-studio': {
+      id: '/app/brand-studio'
+      path: '/brand-studio'
+      fullPath: '/app/brand-studio'
+      preLoaderRoute: typeof AppBrandStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/blueprint': {
+      id: '/app/blueprint'
+      path: '/blueprint'
+      fullPath: '/app/blueprint'
+      preLoaderRoute: typeof AppBlueprintRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppBlueprintRoute: typeof AppBlueprintRoute
+  AppBrandStudioRoute: typeof AppBrandStudioRoute
+  AppBudgetGuardRoute: typeof AppBudgetGuardRoute
+  AppBusinessModelRoute: typeof AppBusinessModelRoute
+  AppCoFounderRoute: typeof AppCoFounderRoute
+  AppDocumentsRoute: typeof AppDocumentsRoute
+  AppFinanceRoute: typeof AppFinanceRoute
+  AppFounderGuardRoute: typeof AppFounderGuardRoute
+  AppFundingRoute: typeof AppFundingRoute
+  AppIdeaLabRoute: typeof AppIdeaLabRoute
+  AppIntegrationsRoute: typeof AppIntegrationsRoute
+  AppMarketingRoute: typeof AppMarketingRoute
+  AppMvpBuilderRoute: typeof AppMvpBuilderRoute
+  AppPitchRoute: typeof AppPitchRoute
+  AppPlanRoute: typeof AppPlanRoute
+  AppProjectsRoute: typeof AppProjectsRoute
+  AppRoadmapRoute: typeof AppRoadmapRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSupportRoute: typeof AppSupportRoute
+  AppTaskCenterRoute: typeof AppTaskCenterRoute
+  AppTeamRoute: typeof AppTeamRoute
+  AppValidationRoute: typeof AppValidationRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBlueprintRoute: AppBlueprintRoute,
+  AppBrandStudioRoute: AppBrandStudioRoute,
+  AppBudgetGuardRoute: AppBudgetGuardRoute,
+  AppBusinessModelRoute: AppBusinessModelRoute,
+  AppCoFounderRoute: AppCoFounderRoute,
+  AppDocumentsRoute: AppDocumentsRoute,
+  AppFinanceRoute: AppFinanceRoute,
+  AppFounderGuardRoute: AppFounderGuardRoute,
+  AppFundingRoute: AppFundingRoute,
+  AppIdeaLabRoute: AppIdeaLabRoute,
+  AppIntegrationsRoute: AppIntegrationsRoute,
+  AppMarketingRoute: AppMarketingRoute,
+  AppMvpBuilderRoute: AppMvpBuilderRoute,
+  AppPitchRoute: AppPitchRoute,
+  AppPlanRoute: AppPlanRoute,
+  AppProjectsRoute: AppProjectsRoute,
+  AppRoadmapRoute: AppRoadmapRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSupportRoute: AppSupportRoute,
+  AppTaskCenterRoute: AppTaskCenterRoute,
+  AppTeamRoute: AppTeamRoute,
+  AppValidationRoute: AppValidationRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  EnterpriseRoute: EnterpriseRoute,
+  LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
