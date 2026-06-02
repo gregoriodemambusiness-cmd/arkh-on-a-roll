@@ -1,47 +1,83 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ShieldAlert, AlertTriangle } from "lucide-react";
+import { ShieldAlert, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
+import { useProject, resolveAlert } from "@/lib/projectStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/app/founder-guard")({
   head: () => ({ meta: [{ title: "Founder Guard — ARKHEON AI" }] }),
   component: FounderGuard,
 });
 
-const risks = [
-  { sev: "Alta", area: "MVP", t: "MVP troppo grande (18 feature pianificate)", reco: "Riduci a 3 funzioni essenziali e rilascia in 30 giorni." },
-  { sev: "Alta", area: "Validation", t: "Sviluppo prima della validazione", reco: "Esegui 20 interviste prima di scrivere codice di produzione." },
-  { sev: "Media", area: "Tool", t: "Stripe attivato prima del lancio", reco: "Disattiva fino a primo cliente reale per evitare costi inutili." },
-  { sev: "Media", area: "Ruoli", t: "Ruoli del team non definiti", reco: "Definisci CEO/CTO/CMO anche se siete in 2." },
-  { sev: "Bassa", area: "Pricing", t: "Pricing non testato", reco: "Testa 3 punti di prezzo nella landing waitlist." },
-];
-
 function FounderGuard() {
+  const proj = useProject();
+  if (!proj) {
+    return <div className="mx-auto max-w-3xl py-20 text-center text-muted-foreground">Nessun progetto attivo.</div>;
+  }
+
+  const open = proj.founderAlerts.filter((a) => !a.resolved);
+  const resolved = proj.founderAlerts.filter((a) => a.resolved);
+  const weight = (s: string) => (s === "Alta" ? 20 : s === "Media" ? 12 : 6);
+  const score = Math.min(100, open.reduce((a, b) => a + weight(b.severity), 0));
+  const tone = score >= 50 ? "warn" : score >= 25 ? "brand" : "ok";
+  const label = score >= 50 ? "Alto" : score >= 25 ? "Medio" : "Basso";
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader title="Founder Guard" subtitle="Errori da evitare. Protezione attiva sulle decisioni critiche." />
 
       <Card>
-        <CardHeader title="Risk Score" icon={ShieldAlert} action={<Pill tone="warn">38 / 100 — Medio</Pill>} />
-        <ProgressBar value={38} tone="warn" />
-        <p className="mt-3 text-[13px] text-muted-foreground">Più basso è meglio. Riduci sviluppando prima validazione e pricing.</p>
+        <CardHeader title="Risk Score" icon={ShieldAlert} action={<Pill tone={tone}>{score} / 100 — {label}</Pill>} />
+        <ProgressBar value={score} tone={tone === "ok" ? "ok" : tone === "warn" ? "warn" : "brand"} />
+        <p className="mt-3 text-[13px] text-muted-foreground">Più basso è meglio. Risolvi gli alert per ridurre il rischio.</p>
       </Card>
 
       <Card>
-        <CardHeader title="Alert" icon={AlertTriangle} action={<Pill tone="warn">{risks.length} segnalazioni</Pill>} />
+        <CardHeader title="Alert attivi" icon={AlertTriangle} action={<Pill tone="warn">{open.length}</Pill>} />
         <div className="space-y-2">
-          {risks.map((r) => (
-            <div key={r.t} className="grid gap-2 rounded-xl border border-border bg-surface/60 p-3 md:grid-cols-[100px_120px_1fr_auto] md:items-center">
-              <Pill tone={r.sev === "Alta" ? "warn" : r.sev === "Media" ? "brand" : "muted"}>{r.sev}</Pill>
-              <span className="text-[12.5px] text-muted-foreground">{r.area}</span>
-              <div>
-                <div className="text-[13.5px] font-medium">{r.t}</div>
-                <div className="text-[12.5px] text-muted-foreground">→ {r.reco}</div>
-              </div>
-              <button className="text-[12.5px] text-brand hover:underline">Risolvi</button>
+          <AnimatePresence initial={false}>
+            {open.map((r) => (
+              <motion.div
+                key={r.id}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="grid gap-2 rounded-xl border border-border bg-surface/60 p-3 md:grid-cols-[80px_110px_1fr_auto] md:items-center"
+              >
+                <Pill tone={r.severity === "Alta" ? "warn" : r.severity === "Media" ? "brand" : "muted"}>{r.severity}</Pill>
+                <span className="text-[12.5px] text-muted-foreground">{r.area}</span>
+                <div>
+                  <div className="text-[13.5px] font-medium">{r.title}</div>
+                  <div className="text-[12.5px] text-muted-foreground">{r.explanation}</div>
+                  <div className="mt-1 text-[12.5px]"><span className="text-foreground">→</span> {r.advice}</div>
+                </div>
+                <button onClick={() => resolveAlert(r.id)} className="text-[12.5px] font-medium text-brand hover:underline">
+                  Correggi
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {open.length === 0 && (
+            <div className="rounded-xl border border-success/30 bg-success/10 p-4 text-[13.5px] text-success">
+              Nessun alert attivo. Continua così.
             </div>
-          ))}
+          )}
         </div>
       </Card>
+
+      {resolved.length > 0 && (
+        <Card>
+          <CardHeader title="Risolti" icon={CheckCircle2} action={<Pill tone="ok">{resolved.length}</Pill>} />
+          <ul className="space-y-1.5 text-[13px] text-muted-foreground">
+            {resolved.map((r) => (
+              <li key={r.id} className="flex items-center gap-2 line-through">
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" /> {r.title}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
     </div>
   );
 }

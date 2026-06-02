@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Wallet, AlertTriangle, TrendingDown } from "lucide-react";
+import { Wallet, AlertTriangle, TrendingDown, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
+import { useProject, analyzeBudget, formatEuro } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/budget-guard")({
   head: () => ({ meta: [{ title: "Budget Guard — ARKHEON AI" }] }),
@@ -8,61 +9,71 @@ export const Route = createFileRoute("/app/budget-guard")({
 });
 
 function BudgetGuard() {
+  const proj = useProject();
+  if (!proj) {
+    return <div className="mx-auto max-w-3xl py-20 text-center text-muted-foreground">Nessun progetto attivo.</div>;
+  }
+
+  const b = analyzeBudget(proj);
+  const tone = b.risk === "alto" ? "warn" : b.risk === "medio" ? "brand" : "ok";
+  const ToneIcon = b.risk === "basso" ? CheckCircle2 : AlertTriangle;
+  const pct = Math.min(100, Math.round((b.available / Math.max(1, b.estimated)) * 100));
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader title="Budget Guard" subtitle="Protegge il tuo budget. Niente sviluppo prima della validazione." />
+      <PageHeader title="Budget Guard" subtitle={`Confronto budget vs MVP — ${proj.name}`} />
 
       <div className="grid gap-4 md:grid-cols-4">
-        {[
-          ["Budget disponibile","€ 3.200"],
-          ["MVP stimato","€ 5.800"],
-          ["Spese previste","€ 4.100"],
-          ["Runway","4 mesi"],
-        ].map(([k,v]) => (
-          <Card key={k}>
-            <div className="text-[12px] uppercase tracking-wider text-muted-foreground">{k}</div>
-            <div className="mt-1 font-display text-2xl font-semibold">{v}</div>
-          </Card>
-        ))}
+        <Card>
+          <div className="text-[12px] uppercase tracking-wider text-muted-foreground">Budget disponibile</div>
+          <div className="mt-1 font-display text-2xl font-semibold">{formatEuro(b.available)}</div>
+          <div className="mt-0.5 text-[11.5px] text-muted-foreground">{proj.onboarding.budget}</div>
+        </Card>
+        <Card>
+          <div className="text-[12px] uppercase tracking-wider text-muted-foreground">Costo MVP stimato</div>
+          <div className="mt-1 font-display text-2xl font-semibold">{formatEuro(b.estimated)}</div>
+          <div className="mt-0.5 text-[11.5px] text-muted-foreground">Tipo: {proj.onboarding.type}</div>
+        </Card>
+        <Card>
+          <div className="text-[12px] uppercase tracking-wider text-muted-foreground">Differenza</div>
+          <div className={`mt-1 font-display text-2xl font-semibold ${b.delta < 0 ? "text-warning" : "text-success"}`}>
+            {b.delta >= 0 ? "+" : "−"}{formatEuro(Math.abs(b.delta)).replace("€ ", "€ ")}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-[12px] uppercase tracking-wider text-muted-foreground">Livello rischio</div>
+          <div className="mt-1 flex items-center gap-2"><Pill tone={tone}>{b.risk.toUpperCase()}</Pill></div>
+          <div className="mt-2"><ProgressBar value={pct} tone={tone === "ok" ? "ok" : tone === "warn" ? "warn" : "brand"} /></div>
+        </Card>
       </div>
 
       <Card>
-        <CardHeader title="Alert attivi" icon={AlertTriangle} action={<Pill tone="warn">3 alert</Pill>} />
-        <div className="space-y-2">
-          {[
-            "Hai 400€ disponibili, ma il tuo MVP stimato costa 2.800€.",
-            "Riduci da 18 feature a 3 funzioni essenziali.",
-            "Stai pianificando sviluppo prima della validazione.",
-          ].map((a) => (
-            <div key={a} className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-3 text-[13.5px] text-warning">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {a}
-            </div>
-          ))}
+        <CardHeader
+          title="Raccomandazione Budget Guard"
+          icon={ToneIcon}
+          action={<Pill tone={tone}>Rischio {b.risk}</Pill>}
+        />
+        <div className={`rounded-xl border p-4 text-[14px] leading-relaxed ${b.risk === "alto" ? "border-warning/30 bg-warning/10 text-warning" : b.risk === "medio" ? "border-brand/30 bg-brand/5" : "border-success/30 bg-success/10 text-success"}`}>
+          {b.recommendation}
         </div>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader title="Tool attivi" icon={Wallet} />
+          <CardHeader title="Funzioni essenziali (incluse nell'MVP)" icon={Wallet} />
           <ul className="space-y-2 text-[13px]">
-            {[
-              ["Vercel","€ 0"],["Supabase","€ 25/m"],["Stripe","€ 0"],["Resend","€ 20/m"],["Posthog","€ 0"],["Notion","€ 12/m"],
-            ].map(([k,v]) => (
-              <li key={k} className="flex justify-between"><span>{k}</span><span className="text-muted-foreground">{v}</span></li>
+            {proj.mvpEssential.map((k) => (
+              <li key={k} className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-success" /> {k}</li>
             ))}
           </ul>
-          <div className="mt-3"><Pill tone="brand">Totale: € 57/m</Pill></div>
         </Card>
         <Card>
-          <CardHeader title="Distribuzione spesa" icon={TrendingDown} />
-          {[
-            ["Sviluppo", 60], ["Marketing", 20], ["Tool", 12], ["Legal", 8],
-          ].map(([k,v]) => (
-            <div key={k as string} className="mb-3">
-              <div className="mb-1 flex justify-between text-[12.5px]"><span>{k}</span><span className="text-muted-foreground">{v}%</span></div>
-              <ProgressBar value={v as number} tone={(v as number) > 50 ? "warn" : "brand"} />
-            </div>
-          ))}
+          <CardHeader title="Funzioni da rimandare" icon={TrendingDown} />
+          <ul className="space-y-2 text-[13px] text-muted-foreground">
+            {proj.mvpDeferred.map((k) => (
+              <li key={k} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" /> {k}</li>
+            ))}
+          </ul>
         </Card>
       </div>
     </div>
