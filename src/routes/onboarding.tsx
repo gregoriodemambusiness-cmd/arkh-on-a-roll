@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { getUser, setUser } from "@/lib/mockAuth";
 import { ArrowRight } from "lucide-react";
+import { generateProject } from "@/lib/projectGenerator";
+import { saveProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: () => {
@@ -47,24 +49,37 @@ function Onboarding() {
   const finalize = () => {
     setLoading(true);
     setTimeout(() => {
+      const onboarding = {
+        idea: data.idea || "",
+        sector: data.sector || "",
+        type: data.type || "",
+        target: data.target || "",
+        location: data.location || "",
+        budget: data.budget || "",
+        stage: data.stage || "",
+        team: data.team || "",
+        goal: data.goal || "",
+      };
+      const project = generateProject(onboarding);
+      saveProject(project);
       setUser({
         ...user,
         onboarded: true,
         project: {
-          name: data.idea?.split(/[.,\n]/)[0]?.slice(0, 30) || "La mia startup",
-          idea: data.idea || "",
-          sector: data.sector || "",
-          location: data.location || "",
-          target: data.target || "",
-          budget: data.budget || "",
-          stage: data.stage || "",
-          team: data.team || "",
-          goal: data.goal || "",
-          type: data.type || "",
+          name: project.name,
+          idea: onboarding.idea,
+          sector: onboarding.sector,
+          location: onboarding.location,
+          target: onboarding.target,
+          budget: onboarding.budget,
+          stage: onboarding.stage,
+          team: onboarding.team,
+          goal: onboarding.goal,
+          type: onboarding.type,
         },
       });
       nav({ to: "/app" });
-    }, 2400);
+    }, 1800);
   };
 
   if (loading) {
