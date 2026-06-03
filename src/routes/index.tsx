@@ -454,12 +454,21 @@ function Pricing() {
           </div>
         ))}
       </div>
-      <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row">
-        <div>
-          <div className="text-[13px] font-medium">Enterprise</div>
-          <div className="text-[13px] text-muted-foreground">Per team, incubatori, scuole e startup studio. Workflow e integrazioni custom.</div>
+      <div className="mt-6 grid gap-3 md:grid-cols-2">
+        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+          <div>
+            <div className="text-[13px] font-medium">ARKHEON Enterprise</div>
+            <div className="text-[13px] text-muted-foreground">Workspace AI per team, scuole, incubatori e startup studio.</div>
+          </div>
+          <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
         </div>
-        <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
+        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+          <div>
+            <div className="text-[13px] font-medium">ARKHEON Studio</div>
+            <div className="text-[13px] text-muted-foreground">Costruiamo automazioni, app e AI agent su misura per la tua azienda.</div>
+          </div>
+          <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit</Link>
+        </div>
       </div>
     </section>
   );
