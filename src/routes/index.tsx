@@ -214,6 +214,73 @@ function Row({ icon: Icon, label, value }: { icon: any; label: string; value: st
   );
 }
 
+function ChoosePath() {
+  const cards = [
+    {
+      tag: "Per Founder",
+      icon: Rocket,
+      title: "ARKHEON AI",
+      desc: "Trasforma la tua idea in una startup organizzata con business model, MVP, roadmap, task, budget, rischi e piano di lancio.",
+      cta: "Inizia gratis",
+      to: "/signup" as const,
+      href: undefined,
+    },
+    {
+      tag: "Per Team",
+      icon: Building2,
+      title: "ARKHEON Enterprise",
+      desc: "Gestisci idee, progetti, team e innovazione in un workspace AI pensato per aziende, scuole, incubatori e startup studio.",
+      cta: "Richiedi una demo",
+      to: "/enterprise" as const,
+      href: undefined,
+      featured: true,
+    },
+    {
+      tag: "Per Aziende operative",
+      icon: Cog,
+      title: "ARKHEON Studio",
+      desc: "Hai un processo lento o ripetitivo? Noi analizziamo il problema e costruiamo automazioni, app e sistemi AI su misura.",
+      cta: "Richiedi un audit operativo",
+      to: "/studio" as const,
+      href: undefined,
+    },
+  ];
+  return (
+    <section id="paths" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <div className="mb-10 text-center">
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Scegli il tuo percorso</h2>
+        <p className="mt-3 text-muted-foreground">Tre modi per costruire con metodo: idea, team, processi.</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.title}
+              className={`relative flex flex-col rounded-3xl border bg-card p-6 transition hover:shadow-elegant ${(c as any).featured ? "border-foreground shadow-elegant" : "border-border hover:border-foreground/20"}`}
+            >
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] text-muted-foreground">
+                {c.tag}
+              </div>
+              <div className="mt-4 inline-flex w-fit rounded-xl bg-brand/10 p-2.5 text-brand">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="mt-3 font-display text-xl font-semibold tracking-tight">{c.title}</div>
+              <p className="mt-2 flex-1 text-[13.5px] leading-relaxed text-muted-foreground">{c.desc}</p>
+              <Link
+                to={c.to}
+                className={`mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-[13.5px] font-medium ${(c as any).featured ? "bg-foreground text-background hover:opacity-90" : "border border-border text-foreground hover:bg-accent"}`}
+              >
+                {c.cta} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function DashboardPreview() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-10 md:py-20">
