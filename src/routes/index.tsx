@@ -27,6 +27,7 @@ function Landing() {
       <PublicNav />
       <Hero />
       <IdeaAnalyzer />
+      <ChoosePath />
       <DashboardPreview />
       <Features />
       <Targets />
