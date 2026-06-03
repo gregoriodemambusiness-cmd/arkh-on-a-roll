@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import {
   ArrowRight, Sparkles, ShieldCheck, Wallet, Map, ListChecks, Target,
-  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap, BarChart3,
+  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap, BarChart3, Cog,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
