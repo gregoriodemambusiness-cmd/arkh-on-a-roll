@@ -44,10 +44,10 @@ function PublicNav() {
         <Link to="/"><Logo size={22} /></Link>
         <nav className="ml-10 hidden items-center gap-7 text-[13.5px] text-muted-foreground md:flex">
           <Link to="/" className="hover:text-foreground">Home</Link>
-          <Link to="/signup" className="hover:text-foreground">Per Founder</Link>
+          <a href="/#paths" className="hover:text-foreground">Per Founder</a>
           <Link to="/enterprise" className="hover:text-foreground">Enterprise</Link>
           <Link to="/studio" className="text-foreground">Studio</Link>
-          <Link to="/" hash="pricing" className="hover:text-foreground">Prezzi</Link>
+          <a href="/#pricing" className="hover:text-foreground">Prezzi</a>
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <button onClick={toggle} className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
