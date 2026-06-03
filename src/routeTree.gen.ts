@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
@@ -39,6 +40,11 @@ import { Route as AppBudgetGuardRouteImport } from './routes/app.budget-guard'
 import { Route as AppBrandStudioRouteImport } from './routes/app.brand-studio'
 import { Route as AppBlueprintRouteImport } from './routes/app.blueprint'
 
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
   '/app/brand-studio': typeof AppBrandStudioRoute
   '/app/budget-guard': typeof AppBudgetGuardRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
   '/app/brand-studio': typeof AppBrandStudioRoute
   '/app/budget-guard': typeof AppBudgetGuardRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
   '/app/brand-studio': typeof AppBrandStudioRoute
   '/app/budget-guard': typeof AppBudgetGuardRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/studio'
     | '/app/blueprint'
     | '/app/brand-studio'
     | '/app/budget-guard'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/studio'
     | '/app/blueprint'
     | '/app/brand-studio'
     | '/app/budget-guard'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/studio'
     | '/app/blueprint'
     | '/app/brand-studio'
     | '/app/budget-guard'
@@ -380,10 +392,18 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
+  StudioRoute: typeof StudioRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -651,6 +671,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
+  StudioRoute: StudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

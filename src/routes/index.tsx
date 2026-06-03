@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import {
   ArrowRight, Sparkles, ShieldCheck, Wallet, Map, ListChecks, Target,
-  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap, BarChart3,
+  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap, BarChart3, Cog,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
@@ -27,6 +27,7 @@ function Landing() {
       <PublicNav />
       <Hero />
       <IdeaAnalyzer />
+      <ChoosePath />
       <DashboardPreview />
       <Features />
       <Targets />
@@ -46,8 +47,9 @@ function PublicNav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center px-5">
         <Link to="/"><Logo size={22} /></Link>
         <nav className="ml-10 hidden items-center gap-7 text-[13.5px] text-muted-foreground md:flex">
-          <a href="#features" className="hover:text-foreground">Prodotto</a>
-          <a href="#demo" className="hover:text-foreground">Demo</a>
+          <a href="#paths" className="hover:text-foreground">Per Founder</a>
+          <Link to="/enterprise" className="hover:text-foreground">Enterprise</Link>
+          <Link to="/studio" className="hover:text-foreground">Studio</Link>
           <a href="#pricing" className="hover:text-foreground">Prezzi</a>
           <a href="#faq" className="hover:text-foreground">FAQ</a>
         </nav>
@@ -209,6 +211,73 @@ function Row({ icon: Icon, label, value }: { icon: any; label: string; value: st
         <div className="text-[13.5px] font-medium text-foreground">{value}</div>
       </div>
     </div>
+  );
+}
+
+function ChoosePath() {
+  const cards = [
+    {
+      tag: "Per Founder",
+      icon: Rocket,
+      title: "ARKHEON AI",
+      desc: "Trasforma la tua idea in una startup organizzata con business model, MVP, roadmap, task, budget, rischi e piano di lancio.",
+      cta: "Inizia gratis",
+      to: "/signup" as const,
+      href: undefined,
+    },
+    {
+      tag: "Per Team",
+      icon: Building2,
+      title: "ARKHEON Enterprise",
+      desc: "Gestisci idee, progetti, team e innovazione in un workspace AI pensato per aziende, scuole, incubatori e startup studio.",
+      cta: "Richiedi una demo",
+      to: "/enterprise" as const,
+      href: undefined,
+      featured: true,
+    },
+    {
+      tag: "Per Aziende operative",
+      icon: Cog,
+      title: "ARKHEON Studio",
+      desc: "Hai un processo lento o ripetitivo? Noi analizziamo il problema e costruiamo automazioni, app e sistemi AI su misura.",
+      cta: "Richiedi un audit operativo",
+      to: "/studio" as const,
+      href: undefined,
+    },
+  ];
+  return (
+    <section id="paths" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <div className="mb-10 text-center">
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Scegli il tuo percorso</h2>
+        <p className="mt-3 text-muted-foreground">Tre modi per costruire con metodo: idea, team, processi.</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.title}
+              className={`relative flex flex-col rounded-3xl border bg-card p-6 transition hover:shadow-elegant ${(c as any).featured ? "border-foreground shadow-elegant" : "border-border hover:border-foreground/20"}`}
+            >
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] text-muted-foreground">
+                {c.tag}
+              </div>
+              <div className="mt-4 inline-flex w-fit rounded-xl bg-brand/10 p-2.5 text-brand">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="mt-3 font-display text-xl font-semibold tracking-tight">{c.title}</div>
+              <p className="mt-2 flex-1 text-[13.5px] leading-relaxed text-muted-foreground">{c.desc}</p>
+              <Link
+                to={c.to}
+                className={`mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-[13.5px] font-medium ${(c as any).featured ? "bg-foreground text-background hover:opacity-90" : "border border-border text-foreground hover:bg-accent"}`}
+              >
+                {c.cta} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -385,12 +454,21 @@ function Pricing() {
           </div>
         ))}
       </div>
-      <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row">
-        <div>
-          <div className="text-[13px] font-medium">Enterprise</div>
-          <div className="text-[13px] text-muted-foreground">Per team, incubatori, scuole e startup studio. Workflow e integrazioni custom.</div>
+      <div className="mt-6 grid gap-3 md:grid-cols-2">
+        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+          <div>
+            <div className="text-[13px] font-medium">ARKHEON Enterprise</div>
+            <div className="text-[13px] text-muted-foreground">Workspace AI per team, scuole, incubatori e startup studio.</div>
+          </div>
+          <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
         </div>
-        <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
+        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+          <div>
+            <div className="text-[13px] font-medium">ARKHEON Studio</div>
+            <div className="text-[13px] text-muted-foreground">Costruiamo automazioni, app e AI agent su misura per la tua azienda.</div>
+          </div>
+          <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit</Link>
+        </div>
       </div>
     </section>
   );
