@@ -47,8 +47,9 @@ function PublicNav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center px-5">
         <Link to="/"><Logo size={22} /></Link>
         <nav className="ml-10 hidden items-center gap-7 text-[13.5px] text-muted-foreground md:flex">
-          <a href="#features" className="hover:text-foreground">Prodotto</a>
-          <a href="#demo" className="hover:text-foreground">Demo</a>
+          <a href="#paths" className="hover:text-foreground">Per Founder</a>
+          <Link to="/enterprise" className="hover:text-foreground">Enterprise</Link>
+          <Link to="/studio" className="hover:text-foreground">Studio</Link>
           <a href="#pricing" className="hover:text-foreground">Prezzi</a>
           <a href="#faq" className="hover:text-foreground">FAQ</a>
         </nav>
