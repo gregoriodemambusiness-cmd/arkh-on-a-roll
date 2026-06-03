@@ -84,6 +84,16 @@ function Support() {
           ))}
         </ul>
       </Card>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+        <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
+          <div>
+            <div className="text-[14px] font-semibold">Hai bisogno di un'automazione su misura?</div>
+            <div className="text-[13px] text-muted-foreground">Scopri ARKHEON Studio: analisi processi, app, dashboard e AI agent costruiti dal nostro team.</div>
+          </div>
+          <a href="/studio" target="_blank" rel="noreferrer" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Scopri Studio</a>
+        </div>
+      </div>
     </div>
   );
 }
