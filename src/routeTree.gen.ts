@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
+import { Route as PaymentCancelRouteImport } from './routes/payment-cancel'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
@@ -48,6 +50,16 @@ const StudioRoute = StudioRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
+  id: '/payment-success',
+  path: '/payment-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentCancelRoute = PaymentCancelRouteImport.update({
+  id: '/payment-cancel',
+  path: '/payment-cancel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -197,6 +209,8 @@ export interface FileRoutesByFullPath {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-cancel': typeof PaymentCancelRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
@@ -228,6 +242,8 @@ export interface FileRoutesByTo {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-cancel': typeof PaymentCancelRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
@@ -261,6 +277,8 @@ export interface FileRoutesById {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/payment-cancel': typeof PaymentCancelRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/app/blueprint': typeof AppBlueprintRoute
@@ -295,6 +313,8 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/payment-cancel'
+    | '/payment-success'
     | '/signup'
     | '/studio'
     | '/app/blueprint'
@@ -326,6 +346,8 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/payment-cancel'
+    | '/payment-success'
     | '/signup'
     | '/studio'
     | '/app/blueprint'
@@ -358,6 +380,8 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/payment-cancel'
+    | '/payment-success'
     | '/signup'
     | '/studio'
     | '/app/blueprint'
@@ -391,6 +415,8 @@ export interface RootRouteChildren {
   EnterpriseRoute: typeof EnterpriseRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PaymentCancelRoute: typeof PaymentCancelRoute
+  PaymentSuccessRoute: typeof PaymentSuccessRoute
   SignupRoute: typeof SignupRoute
   StudioRoute: typeof StudioRoute
 }
@@ -409,6 +435,20 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-success': {
+      id: '/payment-success'
+      path: '/payment-success'
+      fullPath: '/payment-success'
+      preLoaderRoute: typeof PaymentSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-cancel': {
+      id: '/payment-cancel'
+      path: '/payment-cancel'
+      fullPath: '/payment-cancel'
+      preLoaderRoute: typeof PaymentCancelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -670,6 +710,8 @@ const rootRouteChildren: RootRouteChildren = {
   EnterpriseRoute: EnterpriseRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PaymentCancelRoute: PaymentCancelRoute,
+  PaymentSuccessRoute: PaymentSuccessRoute,
   SignupRoute: SignupRoute,
   StudioRoute: StudioRoute,
 }
