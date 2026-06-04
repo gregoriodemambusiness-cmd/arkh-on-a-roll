@@ -1,14 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Target, BarChart3, Wallet, Map, Sparkles, ShieldAlert,
-  ArrowRight, CheckCircle2, AlertTriangle, Send, Rocket,
+  ArrowRight, CheckCircle2, AlertTriangle, Send, Rocket, X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { useUser } from "@/lib/mockAuth";
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
 import {
   useProject, computeHealth, analyzeBudget, completeTask, formatEuro,
 } from "@/lib/projectStore";
+import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
+import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 
 export const Route = createFileRoute("/app/")({
   head: () => ({ meta: [{ title: "Dashboard — ARKHEON AI" }] }),
