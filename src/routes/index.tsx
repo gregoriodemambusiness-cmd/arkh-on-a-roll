@@ -8,6 +8,8 @@ import {
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun } from "lucide-react";
+import { PLANS, type Plan, type PaidPlanId } from "@/lib/billing";
+import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
