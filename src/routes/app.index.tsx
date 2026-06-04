@@ -22,6 +22,8 @@ function Dashboard() {
   const user = useUser();
   const proj = useProject();
   const nav = useNavigate();
+  const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   if (!proj) return <EmptyState />;
 
@@ -30,6 +32,8 @@ function Dashboard() {
   const todo = proj.tasks.filter((t) => t.status !== "Completato").slice(0, 3);
   const nextAction = todo[0];
   const completed = proj.tasks.filter((t) => t.status === "Completato").length;
+  const plan = (user?.plan ?? "free") as PlanId;
+  const nudge = pickNudge(plan, completed, budget.risk, proj.onboarding);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -47,6 +51,38 @@ function Dashboard() {
           </div>
         }
       />
+
+      {nudge && !dismissed && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-card md:flex-row md:items-center"
+        >
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-brand/10 p-2 text-brand"><Sparkles className="h-4 w-4" /></div>
+            <div>
+              <div className="text-[13.5px] font-semibold">{nudge.title}</div>
+              <div className="text-[12.5px] text-muted-foreground">{nudge.desc}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {nudge.target === "enterprise" ? (
+              <a href="/enterprise" className="rounded-lg bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90">{nudge.cta}</a>
+            ) : nudge.target === "studio" ? (
+              <a href="/studio" className="rounded-lg bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90">{nudge.cta}</a>
+            ) : (
+              <Button onClick={() => setConfirm(nudge.target as PaidPlanId)}>{nudge.cta}</Button>
+            )}
+            <button onClick={() => setDismissed(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Chiudi">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      <PlanConfirmModal plan={confirm} onClose={() => setConfirm(null)} />
+
+
 
       <div className="grid grid-cols-12 gap-4">
         {/* Today Focus */}
