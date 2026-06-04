@@ -1,11 +1,15 @@
 import { useTheme } from "@/lib/theme";
 import { Bell, Moon, Search, Sun } from "lucide-react";
 import { useUser } from "@/lib/mockAuth";
+import { PLAN_BY_ID, type PlanId } from "@/lib/billing";
+import { Link } from "@tanstack/react-router";
 
 export function AppTopbar({ title }: { title?: string }) {
   const { theme, toggle } = useTheme();
   const user = useUser();
   const initials = (user?.name || "AR").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const plan = (user?.plan ?? "free") as PlanId;
+  const planName = PLAN_BY_ID[plan]?.name ?? "Free";
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl md:px-6">
@@ -16,6 +20,13 @@ export function AppTopbar({ title }: { title?: string }) {
           <span>Cerca…</span>
           <kbd className="ml-3 rounded border border-border bg-background px-1.5 py-0.5 text-[10px]">⌘K</kbd>
         </div>
+        <Link
+          to="/app/plan"
+          className="hidden items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground sm:inline-flex"
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+          {planName}
+        </Link>
         <button
           onClick={toggle}
           className="rounded-lg border border-border bg-surface p-2 text-muted-foreground hover:text-foreground"
