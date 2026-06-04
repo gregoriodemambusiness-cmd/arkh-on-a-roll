@@ -411,65 +411,81 @@ function Targets() {
 }
 
 function Pricing() {
-  const plans = [
-    { name: "Free Trial", price: "0€", per: "/ 30 giorni", desc: "Provala. Crea la prima struttura.", features: ["1 progetto","Idea Lab base","Roadmap base","Co-founder AI base"], cta: "Inizia gratis", to: "/signup" },
-    { name: "Starter", price: "23€", per: "/mese", desc: "Organizza l'idea.", features: ["1 progetto","Brand Studio base","Business Model base","MVP essenziale","Roadmap 30 giorni"], cta: "Scegli Starter", to: "/signup" },
-    { name: "Pro", price: "49€", per: "/mese", desc: "Costruisci il progetto.", featured: true, features: ["1 progetto","Blueprint completo","MVP Planner","Roadmap 30/60/90","Launch Plan","Export PDF"], cta: "Più scelto", to: "/signup" },
-    { name: "Founder", price: "99€", per: "/mese", desc: "Valida, presenta, scala.", features: ["3 progetti","Investor Kit","Validation avanzata","Funding intelligente","Integrazioni principali","Team workspace"], cta: "Scegli Founder", to: "/signup" },
-  ];
+  const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
+  const paid = (PLANS.filter((p) => p.id !== "enterprise") as Plan[]);
   return (
     <section id="pricing" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
       <div className="mb-10 text-center">
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Un piano per ogni fase.</h2>
-        <p className="mt-3 text-muted-foreground">Ogni piano include un utilizzo equo pensato per la tua fase. Niente limiti scomodi.</p>
+        <p className="mt-3 text-muted-foreground">Tutti i piani includono il percorso completo. La differenza è profondità, automazione, collaborazione e supporto.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-4">
-        {plans.map((p) => (
-          <div
-            key={p.name}
-            className={`relative rounded-2xl border bg-card p-5 ${p.featured ? "border-foreground shadow-elegant" : "border-border"}`}
-          >
-            {p.featured && (
-              <div className="absolute -top-3 left-5 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background">Più scelto</div>
-            )}
-            <div className="text-[13px] font-medium text-muted-foreground">{p.name}</div>
-            <div className="mt-2 flex items-end gap-1">
-              <span className="font-display text-3xl font-semibold">{p.price}</span>
-              <span className="mb-1 text-[12px] text-muted-foreground">{p.per}</span>
-            </div>
-            <p className="mt-1 text-[13px] text-muted-foreground">{p.desc}</p>
-            <ul className="mt-4 space-y-2">
-              {p.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[13px]">
-                  <Check className="mt-0.5 h-3.5 w-3.5 text-brand" /> {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to={p.to}
-              className={`mt-5 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-[13px] font-medium ${p.featured ? "bg-foreground text-background" : "border border-border text-foreground hover:bg-accent"}`}
+        {paid.map((p) => {
+          const isFree = p.id === "free";
+          const isPaid = p.id === "starter" || p.id === "pro" || p.id === "founder";
+          return (
+            <div
+              key={p.id}
+              className={`relative flex flex-col rounded-2xl border bg-card p-5 ${p.featured ? "border-foreground shadow-elegant" : "border-border"}`}
             >
-              {p.cta}
-            </Link>
-          </div>
-        ))}
+              {p.featured && (
+                <div className="absolute -top-3 left-5 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background">Più scelto</div>
+              )}
+              <div className="text-[13px] font-medium text-muted-foreground">{p.name}</div>
+              <div className="mt-2 flex items-end gap-1">
+                <span className="font-display text-3xl font-semibold">{p.priceLabel}</span>
+                <span className="mb-1 text-[12px] text-muted-foreground">{p.per}</span>
+              </div>
+              <p className="mt-1 text-[13px] text-muted-foreground">{p.desc}</p>
+              <ul className="mt-4 flex-1 space-y-2">
+                {p.features.slice(0, 7).map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-[13px]">
+                    <Check className="mt-0.5 h-3.5 w-3.5 text-brand" /> {f}
+                  </li>
+                ))}
+              </ul>
+              {isFree ? (
+                <Link
+                  to="/signup"
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-accent"
+                >
+                  {p.cta}
+                </Link>
+              ) : isPaid ? (
+                <button
+                  onClick={() => setConfirm(p.id as PaidPlanId)}
+                  className={`mt-5 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-[13px] font-medium ${p.featured ? "bg-foreground text-background hover:opacity-90" : "border border-border text-foreground hover:bg-accent"}`}
+                >
+                  {p.cta}
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
-        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
-          <div>
-            <div className="text-[13px] font-medium">ARKHEON Enterprise</div>
-            <div className="text-[13px] text-muted-foreground">Workspace AI per team, scuole, incubatori e startup studio.</div>
-          </div>
-          <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
+      <div className="mt-10">
+        <div className="mb-4 text-center">
+          <h3 className="font-display text-xl font-semibold tracking-tight">Quando il progetto cresce</h3>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">Due percorsi diversi per organizzazioni e aziende operative.</p>
         </div>
-        <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
-          <div>
-            <div className="text-[13px] font-medium">ARKHEON Studio</div>
-            <div className="text-[13px] text-muted-foreground">Costruiamo automazioni, app e AI agent su misura per la tua azienda.</div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+            <div>
+              <div className="text-[13px] font-medium">ARKHEON Enterprise</div>
+              <div className="text-[13px] text-muted-foreground">Per team e organizzazioni che vogliono usare ARKHEON come workspace AI per gestire idee, progetti e innovazione.</div>
+            </div>
+            <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
           </div>
-          <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit</Link>
+          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
+            <div>
+              <div className="text-[13px] font-medium">ARKHEON Studio</div>
+              <div className="text-[13px] text-muted-foreground">Per aziende che vogliono che il nostro team costruisca automazioni, app, dashboard o AI agent su misura.</div>
+            </div>
+            <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit operativo</Link>
+          </div>
         </div>
       </div>
+      <PlanConfirmModal plan={confirm} onClose={() => setConfirm(null)} />
     </section>
   );
 }
