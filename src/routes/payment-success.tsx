@@ -1,11 +1,14 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles, Loader2, AlertTriangle } from "lucide-react";
 import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
 import { PLAN_BY_ID, type PaidPlanId } from "@/lib/billing";
-import { setPlan, getUser } from "@/lib/mockAuth";
+import { setPlan } from "@/lib/mockAuth";
 import { Logo } from "@/components/brand/Logo";
+import { supabase } from "@/integrations/supabase/client";
+import { updateMyPlan, recordPayment } from "@/lib/profile.functions";
 
 const searchSchema = z.object({
   plan: z.enum(["starter", "pro", "founder"]).optional(),
@@ -21,25 +24,59 @@ export const Route = createFileRoute("/payment-success")({
 
 function PaymentSuccess() {
   const { plan, session_id, demo } = useSearch({ from: "/payment-success" }) as z.infer<typeof searchSchema>;
-  const [applied, setApplied] = useState(false);
+  const nav = useNavigate();
+  const [status, setStatus] = useState<"checking" | "needs-login" | "saving" | "done" | "error">("checking");
+  const [error, setError] = useState<string | null>(null);
+  const callUpdatePlan = useServerFn(updateMyPlan);
+  const callRecordPayment = useServerFn(recordPayment);
 
   useEffect(() => {
-    if (!plan) return;
-    const user = getUser();
-    if (!user) return;
-    // Avoid double-recording if user refreshes.
-    const dup = user.paymentHistory?.find((p) => session_id && p.sessionId === session_id);
-    if (dup) {
-      setApplied(true);
-      return;
+    let cancelled = false;
+    async function run() {
+      if (!plan) {
+        setStatus("done");
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        // Demo flow doesn't require an account (kept as a fallback for users
+        // exploring the sandbox without a workspace).
+        if (demo) {
+          setPlan(plan, { amount: PLAN_BY_ID[plan as PaidPlanId].price, mode: "demo", sessionId: session_id });
+          setStatus("done");
+          return;
+        }
+        setStatus("needs-login");
+        return;
+      }
+      setStatus("saving");
+      try {
+        await callUpdatePlan({ data: { plan, stripe_session_id: session_id } });
+        await callRecordPayment({
+          data: {
+            plan,
+            amount: PLAN_BY_ID[plan as PaidPlanId].price,
+            currency: "eur",
+            stripe_session_id: session_id,
+            status: "completed",
+          },
+        });
+        // Mirror into local cache so the topbar / Plan & Usage refresh instantly.
+        setPlan(plan, { amount: PLAN_BY_ID[plan as PaidPlanId].price, mode: demo ? "demo" : "test", sessionId: session_id });
+        if (!cancelled) setStatus("done");
+      } catch (e: any) {
+        console.error(e);
+        if (!cancelled) {
+          setError(e?.message || "Errore nel collegamento del piano.");
+          setStatus("error");
+        }
+      }
     }
-    setPlan(plan, {
-      amount: PLAN_BY_ID[plan].price,
-      mode: demo ? "demo" : "test",
-      sessionId: session_id,
-    });
-    setApplied(true);
-  }, [plan, session_id, demo]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [plan, session_id, demo, callUpdatePlan, callRecordPayment]);
 
   const planMeta = plan ? PLAN_BY_ID[plan as PaidPlanId] : null;
 
@@ -56,55 +93,87 @@ function PaymentSuccess() {
         transition={{ duration: 0.5 }}
         className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-elegant"
       >
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, type: "spring", stiffness: 220, damping: 18 }}
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/15 text-success"
-        >
-          <CheckCircle2 className="h-7 w-7" />
-        </motion.div>
-        <h1 className="mt-5 text-center font-display text-2xl font-semibold tracking-tight">
-          Pagamento {demo ? "demo" : "test"} completato
-        </h1>
-        <p className="mt-2 text-center text-[14px] text-muted-foreground">
-          Il tuo piano è stato aggiornato. Nessun addebito reale è stato effettuato.
-        </p>
-
-        {planMeta && (
-          <div className="mt-5 rounded-2xl border border-border bg-surface/60 p-4">
-            <div className="flex items-baseline justify-between">
-              <div className="flex items-center gap-2 text-[13px] font-medium">
-                <Sparkles className="h-3.5 w-3.5 text-brand" /> {planMeta.name}
-              </div>
-              <div>
-                <span className="font-display text-xl font-semibold">{planMeta.priceLabel}</span>
-                <span className="ml-1 text-[12px] text-muted-foreground">{planMeta.per}</span>
-              </div>
+        {status === "needs-login" ? (
+          <>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-warning/15 text-warning">
+              <AlertTriangle className="h-7 w-7" />
             </div>
-            <p className="mt-2 text-[12.5px] text-muted-foreground">{planMeta.desc}</p>
-          </div>
-        )}
+            <h1 className="mt-5 text-center font-display text-2xl font-semibold tracking-tight">Accedi per completare il collegamento del piano</h1>
+            <p className="mt-2 text-center text-[14px] text-muted-foreground">
+              Il pagamento test è stato registrato da Stripe, ma serve un account per collegarlo al tuo workspace.
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={() => nav({ to: "/login" })}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90"
+              >
+                Accedi <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+              <Link to="/signup" className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-[12.5px] text-foreground hover:bg-accent">
+                Crea un account
+              </Link>
+            </div>
+          </>
+        ) : status === "error" ? (
+          <>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-warning/15 text-warning">
+              <AlertTriangle className="h-7 w-7" />
+            </div>
+            <h1 className="mt-5 text-center font-display text-2xl font-semibold tracking-tight">Collegamento non riuscito</h1>
+            <p className="mt-2 text-center text-[13.5px] text-muted-foreground">{error}</p>
+            <Link to="/app/plan" className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-[12.5px] text-foreground hover:bg-accent">
+              Apri Plan & Usage
+            </Link>
+          </>
+        ) : (
+          <>
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 220, damping: 18 }}
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/15 text-success"
+            >
+              {status === "done" ? <CheckCircle2 className="h-7 w-7" /> : <Loader2 className="h-7 w-7 animate-spin" />}
+            </motion.div>
+            <h1 className="mt-5 text-center font-display text-2xl font-semibold tracking-tight">
+              {status === "done" ? `Pagamento ${demo ? "demo" : "test"} completato` : "Stiamo collegando il piano…"}
+            </h1>
+            <p className="mt-2 text-center text-[14px] text-muted-foreground">
+              {status === "done"
+                ? "Il tuo piano è stato collegato al tuo account. Nessun addebito reale è stato effettuato."
+                : "Aggiorniamo il tuo workspace, ci vuole un attimo."}
+            </p>
 
-        <div className="mt-6 flex flex-col gap-2">
-          <Link
-            to="/app"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90"
-          >
-            Vai alla dashboard <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-          <Link
-            to="/app/plan"
-            className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-[12.5px] text-foreground hover:bg-accent"
-          >
-            Vedi Plan & Usage
-          </Link>
-        </div>
+            {planMeta && (
+              <div className="mt-5 rounded-2xl border border-border bg-surface/60 p-4">
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-center gap-2 text-[13px] font-medium">
+                    <Sparkles className="h-3.5 w-3.5 text-brand" /> {planMeta.name}
+                  </div>
+                  <div>
+                    <span className="font-display text-xl font-semibold">{planMeta.priceLabel}</span>
+                    <span className="ml-1 text-[12px] text-muted-foreground">{planMeta.per}</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-[12.5px] text-muted-foreground">{planMeta.desc}</p>
+              </div>
+            )}
 
-        {!applied && (
-          <p className="mt-3 text-center text-[11px] text-muted-foreground">
-            Applicazione del piano in corso…
-          </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Link
+                to="/app"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90"
+              >
+                Vai alla dashboard <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              <Link
+                to="/app/plan"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-[12.5px] text-foreground hover:bg-accent"
+              >
+                Vedi Plan & Usage
+              </Link>
+            </div>
+          </>
         )}
       </motion.div>
     </div>
