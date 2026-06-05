@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { X, Check, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { PLAN_BY_ID, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { createCheckoutSession } from "@/lib/checkout.functions";
-import { getUser, setPlan } from "@/lib/mockAuth";
+import { setPlan } from "@/lib/mockAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthRequiredModal } from "./AuthRequiredModal";
 
