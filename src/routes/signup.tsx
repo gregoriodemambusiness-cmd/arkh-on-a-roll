@@ -1,40 +1,69 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
-import { setUser, getUser } from "@/lib/mockAuth";
-import { ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowRight, Loader2, AlertTriangle } from "lucide-react";
+import { getPendingPlan, clearPendingPlan } from "@/lib/pendingPlan";
+import { getProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Crea il tuo primo progetto startup — ARKHEON AI" }] }),
-  component: Signup,
+  head: () => ({ meta: [{ title: "Crea il tuo workspace — ARKHEON AI" }] }),
+  component: () => <AuthShell mode="signup" />,
 });
-
-function Signup() {
-  return <AuthShell mode="signup" />;
-}
 
 export function AuthShell({ mode }: { mode: "signup" | "login" }) {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const existing = getUser();
-    setUser({
-      email: email || existing?.email || "founder@arkheon.ai",
-      name: name || existing?.name || email.split("@")[0] || "Founder",
-      plan: existing?.plan ?? "free",
-      onboarded: mode === "login" ? existing?.onboarded ?? false : false,
-      project: existing?.project,
-    });
-    nav({ to: mode === "signup" || !existing?.onboarded ? "/onboarding" : "/app" });
+  const redirectAfter = () => {
+    const pending = getPendingPlan();
+    if (pending) {
+      clearPendingPlan();
+      nav({ to: "/", hash: `pricing-resume-${pending}` });
+      return;
+    }
+    if (getProject()) nav({ to: "/app" });
+    else nav({ to: "/onboarding" });
   };
 
-  const social = (provider: string) => {
-    setUser({ email: `you@${provider}.com`, name: "Founder", plan: "free", onboarded: false });
-    nav({ to: "/onboarding" });
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (mode === "signup" && password !== confirm) {
+      setError("Le due password non coincidono.");
+      return;
+    }
+    if (mode === "signup" && password.length < 6) {
+      setError("La password deve avere almeno 6 caratteri.");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/app`,
+            data: { full_name: name || email.split("@")[0] },
+          },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+      // Give auth sync a tick to hydrate profile/project before redirecting.
+      setTimeout(redirectAfter, 200);
+    } catch (e: any) {
+      setError(e?.message || "Errore di autenticazione.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,36 +95,38 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
         </div>
         <div className="mx-auto mt-12 w-full max-w-sm md:mt-auto">
           <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-            {mode === "signup" ? "Crea il tuo primo progetto startup" : "Accedi al tuo workspace"}
+            {mode === "signup" ? "Crea il tuo workspace Arkheon" : "Bentornato in Arkheon"}
           </h1>
           <p className="mt-1.5 text-[13.5px] text-muted-foreground">
-            {mode === "signup" ? "30 giorni gratis. Nessuna carta richiesta." : "Bentornato. Continuiamo da dove avevi lasciato."}
+            {mode === "signup"
+              ? "Salva il tuo progetto, collega il piano e continua a costruire con metodo."
+              : "Accedi al tuo workspace e continua dal prossimo step."}
           </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-2">
-            {[
-              { id: "google", label: "Google" },
-              { id: "apple", label: "Apple" },
-              { id: "github", label: "GitHub" },
-            ].map((s) => (
-              <button key={s.id} onClick={() => social(s.id)} className="rounded-lg border border-border bg-surface px-3 py-2 text-[12.5px] font-medium hover:bg-accent">
-                {s.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <div className="h-px flex-1 bg-border" /> oppure email <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={submit} className="mt-6 space-y-3">
             {mode === "signup" && (
               <Input label="Nome" value={name} onChange={setName} placeholder="Il tuo nome" />
             )}
             <Input label="Email" type="email" value={email} onChange={setEmail} placeholder="you@startup.com" required />
             <Input label="Password" type="password" value={password} onChange={setPassword} placeholder="••••••••" required />
-            <button type="submit" className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90">
-              {mode === "signup" ? "Crea workspace" : "Entra"} <ArrowRight className="h-4 w-4" />
+            {mode === "signup" && (
+              <Input label="Conferma password" type="password" value={confirm} onChange={setConfirm} placeholder="••••••••" required />
+            )}
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-2.5 text-[12.5px] text-warning">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (mode === "signup" ? "Crea workspace" : "Entra")}
+              {!loading && <ArrowRight className="h-4 w-4" />}
             </button>
           </form>
 
