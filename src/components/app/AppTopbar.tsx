@@ -1,15 +1,18 @@
 import { useTheme } from "@/lib/theme";
-import { Bell, Moon, Search, Sun } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sun } from "lucide-react";
 import { useUser } from "@/lib/mockAuth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/billing";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { signOutAndClear } from "@/lib/authSync";
 
 export function AppTopbar({ title }: { title?: string }) {
   const { theme, toggle } = useTheme();
   const user = useUser();
+  const nav = useNavigate();
   const initials = (user?.name || "AR").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   const plan = (user?.plan ?? "free") as PlanId;
   const planName = PLAN_BY_ID[plan]?.name ?? "Free";
+  const logout = async () => { await signOutAndClear(); nav({ to: "/login" }); };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl md:px-6">
@@ -36,6 +39,13 @@ export function AppTopbar({ title }: { title?: string }) {
         </button>
         <button className="rounded-lg border border-border bg-surface p-2 text-muted-foreground hover:text-foreground">
           <Bell className="h-4 w-4" />
+        </button>
+        <button
+          onClick={logout}
+          title="Esci"
+          className="rounded-lg border border-border bg-surface p-2 text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="h-4 w-4" />
         </button>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
           {initials}
