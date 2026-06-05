@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Stripe Checkout (Sandbox / test mode) created via REST API.
-// No npm package required — works on the Workers runtime via fetch.
-// Uses inline price_data so no STRIPE_PRICE_* IDs are needed.
+// Requires an authenticated Supabase session — the user id is taken from the
+// validated bearer token so checkout is always tied to a real account.
 
 const PAID_PLANS = {
   starter: { name: "ARKHEON Starter", amount: 2300 },
@@ -18,14 +19,16 @@ export type CheckoutResult =
   | { ok: false; error: string; missingKeys?: boolean };
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      plan: z.enum(["starter", "pro", "founder"]),
-      origin: z.string().url(),
-      email: z.string().email().optional(),
-    })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        plan: z.enum(["starter", "pro", "founder"]),
+        origin: z.string().url(),
+      })
+      .parse(d)
   )
-  .handler(async ({ data }): Promise<CheckoutResult> => {
+  .handler(async ({ data, context }): Promise<CheckoutResult> => {
     const secret = process.env.STRIPE_SECRET_KEY_TEST;
     if (!secret) {
       return {
@@ -43,6 +46,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       };
     }
 
+    const { userId, claims } = context;
+    const email = (claims as any)?.email as string | undefined;
     const plan = PAID_PLANS[data.plan as PaidPlan];
     const params = new URLSearchParams();
     params.set("mode", "subscription");
@@ -54,13 +59,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     params.set("line_items[0][quantity]", "1");
     params.set("line_items[0][price_data][currency]", "eur");
     params.set("line_items[0][price_data][product_data][name]", plan.name);
-    params.set(
-      "line_items[0][price_data][unit_amount]",
-      String(plan.amount)
-    );
+    params.set("line_items[0][price_data][unit_amount]", String(plan.amount));
     params.set("line_items[0][price_data][recurring][interval]", "month");
-    if (data.email) params.set("customer_email", data.email);
+    if (email) params.set("customer_email", email);
+    params.set("client_reference_id", userId);
+    params.set("metadata[user_id]", userId);
     params.set("metadata[plan]", data.plan);
+    params.set("metadata[source]", "arkheon-ai");
     params.set("allow_promotion_codes", "true");
 
     try {
