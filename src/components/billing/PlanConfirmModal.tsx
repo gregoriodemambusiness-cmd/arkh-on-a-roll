@@ -4,7 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { X, Check, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { PLAN_BY_ID, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { createCheckoutSession } from "@/lib/checkout.functions";
-import { getUser, setPlan } from "@/lib/mockAuth";
+import { setPlan } from "@/lib/mockAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthRequiredModal } from "./AuthRequiredModal";
 
 type Props = {
   plan: PaidPlanId | null;
@@ -15,6 +17,7 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
+  const [needsAuth, setNeedsAuth] = useState<PaidPlanId | null>(null);
   const checkout = useServerFn(createCheckoutSession);
 
   useEffect(() => {
@@ -24,7 +27,9 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
     }
   }, [plan]);
 
-  if (!plan) return null;
+  if (!plan) {
+    return <AuthRequiredModal plan={needsAuth} onClose={() => setNeedsAuth(null)} />;
+  }
   const p = PLAN_BY_ID[plan as PlanId];
 
   const go = async () => {
@@ -32,13 +37,15 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
     setError(null);
     setMissing(false);
     try {
-      const user = getUser();
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        setLoading(false);
+        setNeedsAuth(plan);
+        onClose();
+        return;
+      }
       const res = await checkout({
-        data: {
-          plan,
-          origin: window.location.origin,
-          email: user?.email,
-        },
+        data: { plan, origin: window.location.origin },
       });
       if (res.ok) {
         window.location.href = res.url;
