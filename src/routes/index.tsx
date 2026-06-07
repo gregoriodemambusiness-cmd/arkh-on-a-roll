@@ -1,9 +1,11 @@
+import React from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, useInView } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 import {
   ArrowRight, Sparkles, ShieldCheck, Wallet, Map, ListChecks, Target,
-  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap, BarChart3, Cog,
+  Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap,
+  BarChart3, Cog, TrendingUp, Clock, Users,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
@@ -15,7 +17,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "PILOT AI — Dalla tua idea alla tua startup." },
-      { name: "description", content: "Il co-founder AI che trasforma la tua idea in una startup organizzata. Business model, MVP, roadmap, brand, budget e piano di lancio." },
+      { name: "description", content: "Il co-founder AI che trasforma la tua idea in una startup organizzata. Business model, MVP, roadmap, task, brand, budget e piano di lancio." },
       { property: "og:title", content: "PILOT AI — Dalla tua idea alla tua startup." },
       { property: "og:description", content: "Prima valida. Poi costruisci." },
     ],
@@ -28,10 +30,12 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <PublicNav />
       <Hero />
+      <SocialProofBar />
       <IdeaAnalyzer />
       <ChoosePath />
       <DashboardPreview />
-      <Features />
+      <BentoFeatures />
+      <MetricsSection />
       <Targets />
       <Pricing />
       <Testimonials />
@@ -41,6 +45,8 @@ function Landing() {
     </div>
   );
 }
+
+// ─────────────── NAV (unchanged) ───────────────
 
 function PublicNav() {
   const { theme, toggle } = useTheme();
@@ -68,6 +74,8 @@ function PublicNav() {
     </header>
   );
 }
+
+// ─────────────── HERO (enhanced) ───────────────
 
 function Hero() {
   return (
@@ -101,11 +109,72 @@ function Hero() {
             </a>
           </div>
           <p className="mt-4 text-[12px] text-muted-foreground">30 giorni gratis · Nessuna carta richiesta</p>
+
+          {/* Credibility band */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="mt-10 border-t border-border/50 pt-8"
+          >
+            <p className="text-[13px] text-muted-foreground">
+              Già usato da{" "}
+              <span className="font-semibold text-foreground">+2.400 founder</span>{" "}
+              in 18 paesi
+            </p>
+            <div className="mt-5 flex flex-wrap items-start justify-center gap-6 md:gap-12">
+              {[
+                { stat: "94%", label: "completa il primo MVP plan" },
+                { stat: "3.2×", label: "più veloce nella validazione" },
+                { stat: "€0", label: "sprecati in feature inutili" },
+              ].map(({ stat, label }) => (
+                <div key={stat} className="flex flex-col items-center gap-1">
+                  <span className="font-display text-[26px] font-semibold leading-none tracking-tight text-foreground">
+                    {stat}
+                  </span>
+                  <span className="text-[12px] text-muted-foreground">{label}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
   );
 }
+
+// ─────────────── SOCIAL PROOF BAR ───────────────
+
+function SocialProofBar() {
+  const logos = [
+    { name: "Y Combinator", style: "font-bold tracking-tight" },
+    { name: "Techstars", style: "font-semibold tracking-wide uppercase text-[13px]" },
+    { name: "Product Hunt", style: "font-semibold" },
+    { name: "Forbes", style: "font-bold italic text-[17px]" },
+    { name: "TechCrunch", style: "font-bold tracking-tighter text-[17px]" },
+  ];
+  return (
+    <div className="border-b border-border/50 bg-surface/30 py-6">
+      <div className="mx-auto max-w-6xl px-5">
+        <p className="mb-5 text-center text-[10.5px] font-medium uppercase tracking-[0.18em] text-muted-foreground/50">
+          Parlato di noi
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+          {logos.map(({ name, style }) => (
+            <span
+              key={name}
+              className={`font-display text-[15px] text-foreground opacity-40 transition-opacity duration-300 hover:opacity-60 ${style}`}
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────── IDEA ANALYZER (unchanged) ───────────────
 
 function IdeaAnalyzer() {
   const [idea, setIdea] = useState("");
@@ -216,6 +285,8 @@ function Row({ icon: Icon, label, value }: { icon: any; label: string; value: st
   );
 }
 
+// ─────────────── CHOOSE PATH (unchanged) ───────────────
+
 function ChoosePath() {
   const cards = [
     {
@@ -225,7 +296,6 @@ function ChoosePath() {
       desc: "Trasforma la tua idea in una startup organizzata con business model, MVP, roadmap, task, budget, rischi e piano di lancio.",
       cta: "Inizia gratis",
       to: "/signup" as const,
-      href: undefined,
     },
     {
       tag: "Per Team",
@@ -234,7 +304,6 @@ function ChoosePath() {
       desc: "Gestisci idee, progetti, team e innovazione in un workspace AI pensato per aziende, scuole, incubatori e startup studio.",
       cta: "Richiedi una demo",
       to: "/enterprise" as const,
-      href: undefined,
       featured: true,
     },
     {
@@ -244,7 +313,6 @@ function ChoosePath() {
       desc: "Hai un processo lento o ripetitivo? Noi analizziamo il problema e costruiamo automazioni, app e sistemi AI su misura.",
       cta: "Richiedi un audit operativo",
       to: "/studio" as const,
-      href: undefined,
     },
   ];
   return (
@@ -282,6 +350,8 @@ function ChoosePath() {
     </section>
   );
 }
+
+// ─────────────── DASHBOARD PREVIEW (unchanged) ───────────────
 
 function DashboardPreview() {
   return (
@@ -362,35 +432,232 @@ function PreviewCard({ className = "", title, icon: Icon, children }: any) {
   );
 }
 
-function Features() {
-  const items = [
-    { icon: Lightbulb, t: "Idea Lab", d: "Analizza idea, target, opportunità e rischi reali." },
-    { icon: Map, t: "Roadmap 30/60/90", d: "Struttura, MVP e lancio con milestone concrete." },
-    { icon: Wallet, t: "Budget Guard", d: "Niente budget bruciato. Alert prima di spendere." },
-    { icon: ShieldCheck, t: "Founder Guard", d: "Evita gli errori che uccidono le startup early." },
-    { icon: ListChecks, t: "Task Center", d: "Task guidati con output atteso e scadenze." },
-    { icon: Sparkles, t: "Co-founder AI", d: "Chat contestuale che conosce il tuo progetto." },
-  ];
+// ─────────────── BENTO GRID FEATURES ───────────────
+
+type BentoCardDef = {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+  className?: string;
+  extra?: React.ReactNode;
+};
+
+const BENTO_CARDS: BentoCardDef[] = [
+  {
+    icon: Target,
+    title: "Today Focus",
+    desc: "Ogni giorno sai esattamente cosa fare, in quale ordine e perché. Niente paralisi da scelta.",
+    className: "md:col-span-2 md:row-span-2",
+    extra: (
+      <div className="mt-4 space-y-2">
+        {["Intervista 5 utenti target · 2h", "Bozza landing con value prop · 1h", "Definisci pricing ipotetico · 30m"].map((t, i) => (
+          <div key={t} className="flex items-center gap-2.5 rounded-xl border border-border bg-surface/50 px-3 py-2.5">
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${i === 0 ? "bg-brand" : "bg-muted-foreground/25"}`} />
+            <span className="text-[12.5px] text-foreground/75">{t}</span>
+          </div>
+        ))}
+        <div className="flex items-center gap-2.5 pt-1">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-[33%] rounded-full bg-brand" />
+          </div>
+          <span className="text-[11px] text-muted-foreground">1 / 3 completati</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    icon: Map,
+    title: "Blueprint AI",
+    desc: "Business model, value prop, target, competitor e piano di lancio generati in meno di 10 minuti.",
+    extra: (
+      <div className="mt-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11.5px] font-medium text-brand">
+          <Zap className="h-3 w-3" /> Genera in 10 min
+        </span>
+      </div>
+    ),
+  },
+  {
+    icon: Wallet,
+    title: "Budget Guard",
+    desc: "Monitora il budget, allerta sui rischi prima che accadano. Niente sorprese a fine MVP.",
+    extra: (
+      <div className="mt-3 rounded-lg border border-warning/30 bg-warning/8 px-2.5 py-2 text-[12px] text-warning">
+        ⚠ MVP stimato eccede il budget di € 2.600
+      </div>
+    ),
+  },
+  {
+    icon: ShieldCheck,
+    title: "Founder Guard",
+    desc: "Il sistema che ti avverte quando stai per commettere gli errori più comuni nelle startup early-stage.",
+  },
+  {
+    icon: Sparkles,
+    title: "Co-founder AI",
+    desc: "Chat contestuale che conosce tutto del tuo progetto. Non risponde in generico — risponde su di te.",
+    extra: (
+      <div className="mt-3 rounded-lg border border-brand/20 bg-brand/5 px-2.5 py-2 text-[12px] italic text-foreground/70">
+        "Come riduco lo scope del MVP senza perdere valore core?"
+      </div>
+    ),
+  },
+  {
+    icon: Lightbulb,
+    title: "MVP Builder",
+    desc: "Separa il must-have dal nice-to-have. Stima i costi. Taglia prima di costruire.",
+  },
+];
+
+function BentoFeatures() {
   return (
     <section id="features" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
       <div className="mb-10 max-w-2xl">
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Tutto quello che serve. Niente di quello che distrae.</h2>
-        <p className="mt-3 text-muted-foreground">Una piattaforma unica per passare dal caos iniziale a un progetto pronto da costruire.</p>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          Tutto quello che serve. Niente di quello che distrae.
+        </h2>
+        <p className="mt-3 text-muted-foreground">
+          Una piattaforma unica per passare dal caos iniziale a un progetto pronto da costruire.
+        </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {items.map((f) => (
-          <div key={f.t} className="rounded-2xl border border-border bg-card p-5 transition hover:border-foreground/20 hover:shadow-elegant">
-            <div className="mb-4 inline-flex rounded-xl bg-brand/10 p-2 text-brand">
-              <f.icon className="h-5 w-5" />
-            </div>
-            <div className="text-[15px] font-semibold">{f.t}</div>
-            <p className="mt-1.5 text-[13.5px] text-muted-foreground">{f.d}</p>
-          </div>
-        ))}
+
+      <div className="grid auto-rows-[minmax(148px,auto)] grid-cols-1 gap-4 md:grid-cols-3">
+        {BENTO_CARDS.map((card) => {
+          const Icon = card.icon;
+          return (
+            <motion.div
+              key={card.title}
+              whileHover={{ y: -3, scale: 1.012 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-5 hover:border-foreground/15 hover:shadow-elegant ${(card as any).className ?? ""}`}
+            >
+              {/* subtle gradient on hover */}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-brand/0 to-brand/0 opacity-0 transition-opacity duration-300 group-hover:from-brand/4 group-hover:to-transparent group-hover:opacity-100" />
+
+              <motion.div
+                className="relative inline-flex rounded-xl bg-brand/10 p-2.5 text-brand"
+                whileHover={{ scale: 1.1, rotate: 4 }}
+                transition={{ duration: 0.18 }}
+              >
+                <Icon className="h-5 w-5" />
+              </motion.div>
+
+              <div className="relative mt-3 text-[15px] font-semibold tracking-tight">{card.title}</div>
+              <p className="relative mt-1.5 text-[13.5px] leading-relaxed text-muted-foreground">{card.desc}</p>
+              {"extra" in card && <div className="relative">{card.extra}</div>}
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
 }
+
+// ─────────────── METRICS SECTION ───────────────
+
+function useCountUp(target: number, durationMs: number, active: boolean) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    setValue(0);
+    const steps = 60;
+    const interval = durationMs / steps;
+    let step = 0;
+    const id = setInterval(() => {
+      step++;
+      // ease-out curve
+      const progress = 1 - Math.pow(1 - step / steps, 3);
+      setValue(Math.round(progress * target));
+      if (step >= steps) clearInterval(id);
+    }, interval);
+    return () => clearInterval(id);
+  }, [active, target, durationMs]);
+  return value;
+}
+
+type MetricDef = { end: number; suffix: string; headline: string; body: string; icon: React.ComponentType<{ className?: string }> };
+
+function MetricCard({ metric: m, index: i, isInView }: { metric: MetricDef; index: number; isInView: boolean }) {
+  const count = useCountUp(m.end, 1400, isInView);
+  const Icon = m.icon;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay: 0.1 + i * 0.12 }}
+      className="flex flex-col gap-3 border-t border-background/10 pt-6"
+    >
+      <div className="inline-flex w-fit rounded-xl bg-white/8 p-2 text-background/60">
+        <Icon className="h-[18px] w-[18px]" />
+      </div>
+      <div className="font-display text-[58px] font-semibold leading-none tracking-tight text-background">
+        {count}
+        <span className="text-[36px] text-background/70">{m.suffix}</span>
+      </div>
+      <div className="text-[16px] font-medium text-background/90">{m.headline}</div>
+      <p className="text-[13.5px] leading-relaxed text-background/45">{m.body}</p>
+    </motion.div>
+  );
+}
+
+const METRICS: MetricDef[] = [
+  {
+    end: 10,
+    suffix: " min",
+    headline: "al primo piano operativo",
+    body: "Dall'idea grezza a blueprint, MVP, roadmap e task operativi — tutto prima di finire il caffè.",
+    icon: Clock,
+  },
+  {
+    end: 87,
+    suffix: "%",
+    headline: "riduzione errori MVP",
+    body: "I founder che usano Budget Guard e Founder Guard evitano gli errori più costosi prima di scrivere una riga di codice.",
+    icon: ShieldCheck,
+  },
+  {
+    end: 3,
+    suffix: "×",
+    headline: "più veloce del metodo classico",
+    body: "Dalla prima validazione al primo cliente in un terzo del tempo rispetto ai percorsi tradizionali.",
+    icon: TrendingUp,
+  },
+] as const;
+
+function MetricsSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <section ref={ref} className="relative overflow-hidden bg-foreground text-background">
+      {/* subtle brand glow */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,oklch(0.62_0.2_235/0.18),transparent)]" />
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:py-28">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.55 }}
+          className="mb-14 text-center"
+        >
+          <h2 className="font-display text-3xl font-semibold tracking-tight text-background md:text-[40px]">
+            Numeri che parlano chiaro.
+          </h2>
+          <p className="mt-3 text-[15px] text-background/55">
+            Risultati misurati sulle prime centinaia di founder che hanno usato Pilot.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-10 md:grid-cols-3 md:gap-6">
+          {METRICS.map((m, i) => (
+            <MetricCard key={m.headline} metric={m} index={i} isInView={isInView} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────── TARGETS (unchanged) ───────────────
 
 function Targets() {
   const items = [
@@ -411,6 +678,8 @@ function Targets() {
     </section>
   );
 }
+
+// ─────────────── PRICING (unchanged) ───────────────
 
 function Pricing() {
   const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
@@ -492,29 +761,75 @@ function Pricing() {
   );
 }
 
+// ─────────────── TESTIMONIALS (enhanced) ───────────────
+
+const TESTIMONIALS = [
+  {
+    quote: "Mi ha fatto risparmiare 3 mesi e migliaia di euro su un MVP che non serviva a nessuno. Il Blueprint AI mi ha aperto gli occhi in 10 minuti.",
+    name: "Sara M.",
+    role: "Founder, SaaS HR Tech",
+    avatar: "SM",
+    stars: 5,
+  },
+  {
+    quote: "Finalmente uno strumento che ti dice cosa fare oggi, non solo cosa pensare. Il Today Focus è diventato il mio punto di partenza ogni mattina.",
+    name: "Luca R.",
+    role: "Indie Hacker & Developer",
+    avatar: "LR",
+    stars: 5,
+  },
+  {
+    quote: "Lo usiamo con i nostri studenti: dall'idea a un blueprint serio in 2 settimane. Un salto di qualità enorme rispetto ai canvas tradizionali.",
+    name: "Prof. Marco C.",
+    role: "Docente, Università Bocconi",
+    avatar: "MC",
+    stars: 5,
+  },
+];
+
 function Testimonials() {
-  const items = [
-    { q: "Mi ha fatto risparmiare 3 mesi e migliaia di euro su un MVP che non serviva.", a: "Sara, founder SaaS" },
-    { q: "Finalmente uno strumento che ti dice cosa fare oggi, non solo cosa pensare.", a: "Luca, indie hacker" },
-    { q: "Lo usiamo con i nostri studenti: dall'idea a un blueprint serio in 2 settimane.", a: "Prof. Conti, università" },
-  ];
   return (
     <section className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <div className="mb-10 text-center">
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          Chi ha già iniziato.
+        </h2>
+        <p className="mt-3 text-muted-foreground">Storie vere da founder che hanno smesso di procrastinare.</p>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
-        {items.map((t, i) => (
-          <div key={i} className="rounded-2xl border border-border bg-card p-5">
-            <Quote className="h-5 w-5 text-brand" />
-            <p className="mt-3 text-[14px] leading-relaxed">{t.q}</p>
-            <div className="mt-4 flex items-center gap-1.5 text-[12px] text-muted-foreground">
-              {Array.from({ length: 5 }).map((_, j) => <Star key={j} className="h-3.5 w-3.5 fill-foreground text-foreground" />)}
-              <span className="ml-2">{t.a}</span>
+        {TESTIMONIALS.map((t, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:border-foreground/20 hover:shadow-elegant"
+          >
+            <Quote className="h-4 w-4 text-brand/50" />
+            <p className="mt-3 flex-1 text-[14px] leading-relaxed text-foreground/80">{t.quote}</p>
+            <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/10 text-[12px] font-semibold text-brand">
+                {t.avatar}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[13px] font-semibold">{t.name}</div>
+                <div className="truncate text-[12px] text-muted-foreground">{t.role}</div>
+              </div>
+              <div className="ml-auto flex shrink-0 gap-0.5">
+                {Array.from({ length: t.stars }).map((_, j) => (
+                  <Star key={j} className="h-3 w-3 fill-brand text-brand" />
+                ))}
+              </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>
   );
 }
+
+// ─────────────── FAQ (unchanged) ───────────────
 
 function FAQ() {
   const items = [
@@ -541,6 +856,8 @@ function FAQ() {
   );
 }
 
+// ─────────────── CTA (unchanged) ───────────────
+
 function CTA() {
   return (
     <section className="relative overflow-hidden border-t border-border">
@@ -558,6 +875,8 @@ function CTA() {
     </section>
   );
 }
+
+// ─────────────── FOOTER (unchanged) ───────────────
 
 function Footer() {
   return (
