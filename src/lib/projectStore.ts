@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-const KEY = "arkheon-project";
-const EVT = "arkheon-project-change";
+const KEY = "pilot-project";
+const EVT = "pilot-project-change";
 
 export type TaskStatus = "Da fare" | "In corso" | "Completato";
 export type TaskArea = "Idea" | "MVP" | "Budget" | "Validation" | "Marketing" | "Brand" | "Pitch";

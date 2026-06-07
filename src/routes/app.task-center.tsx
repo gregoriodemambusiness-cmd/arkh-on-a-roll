@@ -9,7 +9,7 @@ import {
 } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/task-center")({
-  head: () => ({ meta: [{ title: "Task Center — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Task Center — PILOT AI" }] }),
   component: TaskCenter,
 });
 

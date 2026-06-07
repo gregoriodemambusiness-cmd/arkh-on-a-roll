@@ -12,9 +12,9 @@ import { Moon, Sun } from "lucide-react";
 export const Route = createFileRoute("/studio")({
   head: () => ({
     meta: [
-      { title: "ARKHEON Studio — Dal processo lento all'automazione operativa." },
+      { title: "PILOT Studio — Dal processo lento all'automazione operativa." },
       { name: "description", content: "Analizziamo i tuoi processi e costruiamo automazioni, app, dashboard e AI agent su misura per la tua azienda." },
-      { property: "og:title", content: "ARKHEON Studio — Automazioni e AI agent su misura." },
+      { property: "og:title", content: "PILOT Studio — Automazioni e AI agent su misura." },
       { property: "og:description", content: "Hai un processo lento? Noi lo trasformiamo in automazione." },
     ],
   }),
@@ -70,14 +70,14 @@ function Hero() {
       <div className="relative mx-auto max-w-5xl px-5 pb-16 pt-20 md:pb-24 md:pt-28 text-center">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1 text-[12px] text-muted-foreground backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" /> ARKHEON Studio · Soluzioni operative su misura
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" /> PILOT Studio · Soluzioni operative su misura
           </span>
           <h1 className="mt-6 font-display text-[42px] font-semibold leading-[1.05] tracking-tight md:text-[60px]">
             Hai un processo lento?<br />
             Noi lo trasformiamo in <span className="text-gradient">automazione.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-[16px] leading-relaxed text-muted-foreground md:text-[17px]">
-            ARKHEON Studio analizza i processi della tua azienda e costruisce automazioni, app,
+            PILOT Studio analizza i processi della tua azienda e costruisce automazioni, app,
             dashboard e AI agent su misura per ridurre lavoro manuale, errori e tempo perso.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -139,7 +139,7 @@ function UseCase() {
           </h3>
           <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
             Un'agenzia perde tempo a creare preventivi su più compagnie, copiare dati, generare documenti
-            e seguire ogni pratica manualmente. ARKHEON Studio può progettare un sistema che raccoglie
+            e seguire ogni pratica manualmente. PILOT Studio può progettare un sistema che raccoglie
             i dati, organizza le richieste, genera output, riduce errori e velocizza il lavoro del team.
           </p>
         </div>
@@ -209,7 +209,7 @@ function Offers() {
   );
 }
 
-const FORM_KEY = "arkheon-studio-requests";
+const FORM_KEY = "pilot-studio-requests";
 
 function RequestForm() {
   const [sent, setSent] = useState(false);
@@ -286,7 +286,7 @@ function Footer() {
     <footer className="border-t border-border bg-surface/40">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 md:flex-row">
         <Logo size={20} />
-        <p className="text-[12px] text-muted-foreground">© {new Date().getFullYear()} ARKHEON · Dal processo lento all'automazione operativa.</p>
+        <p className="text-[12px] text-muted-foreground">© {new Date().getFullYear()} PILOT · Dal processo lento all'automazione operativa.</p>
       </div>
     </footer>
   );

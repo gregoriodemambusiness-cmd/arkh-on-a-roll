@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const KEY = "arkheon-theme";
+const KEY = "pilot-theme";
 type Theme = "light" | "dark";
 
 export function useTheme() {

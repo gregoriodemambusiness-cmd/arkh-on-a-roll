@@ -5,7 +5,7 @@ import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui"
 import { useUser, setUser } from "@/lib/mockAuth";
 
 export const Route = createFileRoute("/app/settings")({
-  head: () => ({ meta: [{ title: "Settings — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Settings — PILOT AI" }] }),
   component: SettingsPage,
 });
 

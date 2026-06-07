@@ -7,9 +7,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 // validated bearer token so checkout is always tied to a real account.
 
 const PAID_PLANS = {
-  starter: { name: "ARKHEON Starter", amount: 2300 },
-  pro: { name: "ARKHEON Pro", amount: 4900 },
-  founder: { name: "ARKHEON Founder", amount: 9900 },
+  starter: { name: "PILOT Starter", amount: 2300 },
+  pro: { name: "PILOT Pro", amount: 4900 },
+  founder: { name: "PILOT Founder", amount: 9900 },
 } as const;
 
 type PaidPlan = keyof typeof PAID_PLANS;
@@ -65,7 +65,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     params.set("client_reference_id", userId);
     params.set("metadata[user_id]", userId);
     params.set("metadata[plan]", data.plan);
-    params.set("metadata[source]", "arkheon-ai");
+    params.set("metadata[source]", "pilot-ai");
     params.set("allow_promotion_codes", "true");
 
     try {

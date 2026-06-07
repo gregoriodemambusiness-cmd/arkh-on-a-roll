@@ -5,7 +5,7 @@ import { useProject, resolveAlert } from "@/lib/projectStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/app/founder-guard")({
-  head: () => ({ meta: [{ title: "Founder Guard — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Founder Guard — PILOT AI" }] }),
   component: FounderGuard,
 });
 

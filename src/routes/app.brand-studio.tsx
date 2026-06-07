@@ -3,7 +3,7 @@ import { Palette, Globe, AtSign, FileText, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/brand-studio")({
-  head: () => ({ meta: [{ title: "Brand Studio — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Brand Studio — PILOT AI" }] }),
   component: BrandStudio,
 });
 

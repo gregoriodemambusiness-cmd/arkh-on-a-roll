@@ -11,7 +11,7 @@ export const Route = createFileRoute("/onboarding")({
   beforeLoad: () => {
     if (typeof window !== "undefined" && !getUser()) throw redirect({ to: "/signup" });
   },
-  head: () => ({ meta: [{ title: "Onboarding — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Onboarding — PILOT AI" }] }),
   component: Onboarding,
 });
 
@@ -89,7 +89,7 @@ function Onboarding() {
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }}>
             <LogoMark size={56} className="text-brand" />
           </motion.div>
-          <p className="mt-6 font-display text-lg">Arkhéon sta trasformando la tua idea</p>
+          <p className="mt-6 font-display text-lg">Pilot sta trasformando la tua idea</p>
           <p className="mt-1 text-[13.5px] text-muted-foreground">in un progetto operativo…</p>
         </div>
       </div>

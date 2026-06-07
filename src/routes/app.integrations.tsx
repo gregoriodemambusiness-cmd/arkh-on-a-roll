@@ -3,7 +3,7 @@ import { Plug, Lock } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/integrations")({
-  head: () => ({ meta: [{ title: "Integrations — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Integrations — PILOT AI" }] }),
   component: Integrations,
 });
 

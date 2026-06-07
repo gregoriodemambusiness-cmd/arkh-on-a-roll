@@ -3,7 +3,7 @@ import { Banknote, FileCheck2, Calendar, Lock, Sparkles } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar, Button } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/funding")({
-  head: () => ({ meta: [{ title: "Bandi & Funding — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Bandi & Funding — PILOT AI" }] }),
   component: Funding,
 });
 

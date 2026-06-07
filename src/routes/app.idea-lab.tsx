@@ -5,7 +5,7 @@ import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/compo
 import { useUser } from "@/lib/mockAuth";
 
 export const Route = createFileRoute("/app/idea-lab")({
-  head: () => ({ meta: [{ title: "Idea Lab — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Idea Lab — PILOT AI" }] }),
   component: IdeaLab,
 });
 

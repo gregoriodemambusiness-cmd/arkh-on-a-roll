@@ -3,7 +3,7 @@ import { ShieldCheck, MessageCircle, Users, TrendingUp } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/validation")({
-  head: () => ({ meta: [{ title: "Validation — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Validation — PILOT AI" }] }),
   component: Validation,
 });
 

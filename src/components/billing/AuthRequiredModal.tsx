@@ -49,7 +49,7 @@ export function AuthRequiredModal({ plan, onClose }: Props) {
               Crea un account prima di scegliere il piano
             </h2>
             <p className="mt-1.5 text-[13.5px] text-muted-foreground">
-              Per collegare <b className="text-foreground">{p.name}</b> al tuo workspace Arkheon, devi prima creare un account o accedere. Il pagamento test resta inalterato.
+              Per collegare <b className="text-foreground">{p.name}</b> al tuo workspace Pilot, devi prima creare un account o accedere. Il pagamento test resta inalterato.
             </p>
 
             <div className="mt-5 flex flex-col gap-2">

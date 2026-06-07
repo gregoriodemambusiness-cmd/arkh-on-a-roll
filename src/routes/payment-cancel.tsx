@@ -4,7 +4,7 @@ import { XCircle, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 
 export const Route = createFileRoute("/payment-cancel")({
-  head: () => ({ meta: [{ title: "Pagamento annullato — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Pagamento annullato — PILOT AI" }] }),
   component: PaymentCancel,
 });
 

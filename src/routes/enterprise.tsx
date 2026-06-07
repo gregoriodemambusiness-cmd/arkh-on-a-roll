@@ -6,7 +6,7 @@ import { ArrowRight, Building2, Check, Cog } from "lucide-react";
 export const Route = createFileRoute("/enterprise")({
   head: () => ({
     meta: [
-      { title: "ARKHEON Enterprise — Workspace AI per team e organizzazioni" },
+      { title: "PILOT Enterprise — Workspace AI per team e organizzazioni" },
       { name: "description", content: "Gestisci idee, progetti, team e innovazione in un workspace AI per aziende, scuole, incubatori e startup studio." },
     ],
   }),
@@ -32,7 +32,7 @@ function Enterprise() {
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px]"><Building2 className="h-3 w-3 text-brand" /> Enterprise</div>
           <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight md:text-5xl">Workspace AI per team, incubatori, scuole e startup studio.</h1>
-          <p className="mt-4 max-w-md text-[15px] text-muted-foreground">Il tuo team usa ARKHEON come workspace per gestire idee, progetti, roadmap e innovazione. Ruoli, dashboard admin, portfolio multi-progetto e supporto dedicato.</p>
+          <p className="mt-4 max-w-md text-[15px] text-muted-foreground">Il tuo team usa PILOT come workspace per gestire idee, progetti, roadmap e innovazione. Ruoli, dashboard admin, portfolio multi-progetto e supporto dedicato.</p>
           <ul className="mt-6 space-y-2 text-[14px] text-muted-foreground">
             {["Workspace e ruoli personalizzati","Portfolio multi-progetto","Workflow & integrazioni custom","Report organizzazione","Funding monitor avanzato","Onboarding e SLA dedicati"].map((t) => (
               <li key={t}>• {t}</li>
@@ -82,7 +82,7 @@ function Enterprise() {
           <div className="grid gap-4 md:grid-cols-2">
             <CompareCard
               icon={Building2}
-              title="ARKHEON Enterprise"
+              title="PILOT Enterprise"
               subtitle="Il tuo team usa la piattaforma"
               items={[
                 "Gestione idee e progetti",
@@ -98,7 +98,7 @@ function Enterprise() {
             />
             <CompareCard
               icon={Cog}
-              title="ARKHEON Studio"
+              title="PILOT Studio"
               subtitle="Il nostro team costruisce per te"
               items={[
                 "Automazioni su misura",

@@ -3,7 +3,7 @@ import { Presentation, Mail, FileText, Sparkles } from "lucide-react";
 import { Card, CardHeader, PageHeader, Button } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/pitch")({
-  head: () => ({ meta: [{ title: "Pitch Room — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Pitch Room — PILOT AI" }] }),
   component: PitchRoom,
 });
 
@@ -15,14 +15,14 @@ function PitchRoom() {
 
       <Card>
         <CardHeader title="One-line pitch" icon={Presentation} />
-        <p className="font-display text-xl">ARKHEON AI è il co-founder AI che trasforma un'idea in una startup organizzata.</p>
+        <p className="font-display text-xl">PILOT AI è il co-founder AI che trasforma un'idea in una startup organizzata.</p>
       </Card>
 
       <Card>
         <CardHeader title="Elevator pitch (30s)" />
         <p className="text-[14.5px] leading-relaxed text-muted-foreground">
           I founder hanno idee ma non sanno da dove partire: costruiscono troppo, spendono troppo presto e non validano.
-          ARKHEON AI guida l'utente passo dopo passo dalla validazione al lancio, con Co-founder AI, Budget Guard, MVP Builder e Roadmap.
+          PILOT AI guida l'utente passo dopo passo dalla validazione al lancio, con Co-founder AI, Budget Guard, MVP Builder e Roadmap.
           Pricing semplice da 23€/mese.
         </p>
       </Card>

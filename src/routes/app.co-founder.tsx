@@ -6,7 +6,7 @@ import { Card, PageHeader, Pill } from "@/components/app/ui";
 import { useProject, analyzeBudget, computeHealth, formatEuro, type Project } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/co-founder")({
-  head: () => ({ meta: [{ title: "Co-founder AI — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Co-founder AI — PILOT AI" }] }),
   component: CoFounder,
 });
 

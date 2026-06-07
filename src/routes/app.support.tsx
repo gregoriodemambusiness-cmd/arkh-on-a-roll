@@ -4,13 +4,13 @@ import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui"
 import { useState } from "react";
 
 export const Route = createFileRoute("/app/support")({
-  head: () => ({ meta: [{ title: "Support — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Support — PILOT AI" }] }),
   component: Support,
 });
 
 const faqs = [
   { q: "Come funziona la capacità mensile inclusa?", a: "Ogni piano include un utilizzo equo pensato per la tua fase. Se cresci, ti proponiamo il piano più adatto." },
-  { q: "Posso usare ARKHEON AI con il mio team?", a: "Sì, dai piani Founder ed Enterprise hai workspace e ruoli." },
+  { q: "Posso usare PILOT AI con il mio team?", a: "Sì, dai piani Founder ed Enterprise hai workspace e ruoli." },
   { q: "Come esporto il mio progetto?", a: "Da Settings → Data & Export oppure dal singolo modulo (Blueprint, Pitch, Task)." },
 ];
 
@@ -89,7 +89,7 @@ function Support() {
         <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
           <div>
             <div className="text-[14px] font-semibold">Hai bisogno di un'automazione su misura?</div>
-            <div className="text-[13px] text-muted-foreground">Scopri ARKHEON Studio: analisi processi, app, dashboard e AI agent costruiti dal nostro team.</div>
+            <div className="text-[13px] text-muted-foreground">Scopri PILOT Studio: analisi processi, app, dashboard e AI agent costruiti dal nostro team.</div>
           </div>
           <a href="/studio" target="_blank" rel="noreferrer" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Scopri Studio</a>
         </div>

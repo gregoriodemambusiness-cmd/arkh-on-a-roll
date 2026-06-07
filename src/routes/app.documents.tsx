@@ -3,7 +3,7 @@ import { Files, Download } from "lucide-react";
 import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/documents")({
-  head: () => ({ meta: [{ title: "Documents — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Documents — PILOT AI" }] }),
   component: Docs,
 });
 

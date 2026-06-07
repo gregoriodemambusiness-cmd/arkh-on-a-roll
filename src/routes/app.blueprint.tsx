@@ -5,7 +5,7 @@ import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui"
 import { useProject, updateBlueprint, type Blueprint } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/blueprint")({
-  head: () => ({ meta: [{ title: "Blueprint — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Blueprint — PILOT AI" }] }),
   component: BlueprintPage,
 });
 

@@ -11,7 +11,7 @@ import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 import { useProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/plan")({
-  head: () => ({ meta: [{ title: "Plan & Usage — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Plan & Usage — PILOT AI" }] }),
   component: Plan,
 });
 
@@ -111,7 +111,7 @@ function Plan() {
       <Card>
         <CardHeader title="Percorso di crescita" icon={TrendingUp} />
         <p className="text-[13.5px] text-muted-foreground">
-          ARKHEON cresce insieme al tuo progetto. Parti gratis, organizza l'idea, costruisci il primo MVP, valida il mercato e passa a un piano più avanzato quando il progetto diventa più serio.
+          PILOT cresce insieme al tuo progetto. Parti gratis, organizza l'idea, costruisci il primo MVP, valida il mercato e passa a un piano più avanzato quando il progetto diventa più serio.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
           {PATH.map((id) => {
@@ -244,14 +244,14 @@ function Plan() {
         <div className="grid gap-3 md:grid-cols-2">
           <GrowCard
             icon={Building2}
-            title="ARKHEON Enterprise"
-            desc="Per team e organizzazioni che vogliono usare ARKHEON come workspace AI per gestire idee, progetti e innovazione."
+            title="PILOT Enterprise"
+            desc="Per team e organizzazioni che vogliono usare PILOT come workspace AI per gestire idee, progetti e innovazione."
             cta="Richiedi una demo"
             to="/enterprise"
           />
           <GrowCard
             icon={Cog}
-            title="ARKHEON Studio"
+            title="PILOT Studio"
             desc="Per aziende che vogliono che il nostro team costruisca automazioni, app, dashboard o AI agent su misura."
             cta="Richiedi un audit operativo"
             to="/studio"

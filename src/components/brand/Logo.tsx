@@ -18,14 +18,14 @@ export function LogoMark({ className, size = 28 }: { className?: string; size?: 
       aria-hidden
     >
       <defs>
-        <linearGradient id="arkheon-g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+        <linearGradient id="pilot-g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="currentColor" />
           <stop offset="100%" stopColor="currentColor" stopOpacity="0.7" />
         </linearGradient>
       </defs>
       <path
         d="M16 3 L28 27 H22.5 L20.2 21.5 H11.8 L9.5 27 H4 L16 3Z M13.6 17 H18.4 L16 11.2 L13.6 17Z"
-        fill="url(#arkheon-g)"
+        fill="url(#pilot-g)"
       />
       <circle cx="16" cy="6.5" r="1.6" fill="currentColor" />
     </svg>
@@ -38,7 +38,7 @@ export function Logo({ className, size = 28, withWordmark = true }: Props) {
       <LogoMark size={size} />
       {withWordmark && (
         <span className="font-display text-[15px] font-semibold tracking-tight">
-          ARKHEON <span className="text-brand">AI</span>
+          Pilot
         </span>
       )}
     </div>

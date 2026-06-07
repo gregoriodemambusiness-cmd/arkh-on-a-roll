@@ -4,7 +4,7 @@ import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/ap
 import { useProject, analyzeBudget, formatEuro } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/budget-guard")({
-  head: () => ({ meta: [{ title: "Budget Guard — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Budget Guard — PILOT AI" }] }),
   component: BudgetGuard,
 });
 

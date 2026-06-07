@@ -3,7 +3,7 @@ import { Receipt } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/finance")({
-  head: () => ({ meta: [{ title: "Finance — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Finance — PILOT AI" }] }),
   component: Finance,
 });
 

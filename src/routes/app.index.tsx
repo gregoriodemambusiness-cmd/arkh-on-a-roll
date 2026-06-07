@@ -22,7 +22,7 @@ import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/bil
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 
 export const Route = createFileRoute("/app/")({
-  head: () => ({ meta: [{ title: "Dashboard — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — PILOT AI" }] }),
   component: Dashboard,
 });
 
@@ -43,8 +43,8 @@ function pickNudge(plan: string, completedTasks: number, budgetRisk: string, onb
   if (looksLikeAutomation) {
     return {
       title: "Hai bisogno di un’automazione su misura?",
-      desc: "ARKHEON Studio può aiutarti a trasformare processi lenti in app, dashboard o workflow operativi.",
-      cta: "Scopri ARKHEON Studio",
+      desc: "PILOT Studio può aiutarti a trasformare processi lenti in app, dashboard o workflow operativi.",
+      cta: "Scopri PILOT Studio",
       target: "studio" as const,
     };
   }
@@ -52,7 +52,7 @@ function pickNudge(plan: string, completedTasks: number, budgetRisk: string, onb
   if (looksLikeTeam) {
     return {
       title: "Stai lavorando con un team?",
-      desc: "ARKHEON Enterprise è pensato per gestire idee, progetti e innovazione con più persone.",
+      desc: "PILOT Enterprise è pensato per gestire idee, progetti e innovazione con più persone.",
       cta: "Scopri Enterprise",
       target: "enterprise" as const,
     };
@@ -423,7 +423,7 @@ function EmptyState() {
       </div>
       <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">Crea il tuo primo progetto startup</h1>
       <p className="mt-2 max-w-md text-[14px] text-muted-foreground">
-        Inserisci la tua idea: ARKHEON AI genera blueprint, MVP, roadmap e i primi task operativi.
+        Inserisci la tua idea: PILOT AI genera blueprint, MVP, roadmap e i primi task operativi.
       </p>
       <Link
         to="/onboarding"

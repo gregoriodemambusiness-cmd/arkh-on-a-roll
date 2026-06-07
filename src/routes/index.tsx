@@ -14,9 +14,9 @@ import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ARKHEON AI — Dalla tua idea alla tua startup." },
+      { title: "PILOT AI — Dalla tua idea alla tua startup." },
       { name: "description", content: "Il co-founder AI che trasforma la tua idea in una startup organizzata. Business model, MVP, roadmap, brand, budget e piano di lancio." },
-      { property: "og:title", content: "ARKHEON AI — Dalla tua idea alla tua startup." },
+      { property: "og:title", content: "PILOT AI — Dalla tua idea alla tua startup." },
       { property: "og:description", content: "Prima valida. Poi costruisci." },
     ],
   }),
@@ -132,7 +132,7 @@ function IdeaAnalyzer() {
     <section id="demo" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
       <div className="mb-10 text-center">
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Prova l'Idea Analyzer</h2>
-        <p className="mt-3 text-muted-foreground">Scrivi un'idea. Vedi cosa farebbe Arkhéon.</p>
+        <p className="mt-3 text-muted-foreground">Scrivi un'idea. Vedi cosa farebbe Pilot.</p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-5">
@@ -221,7 +221,7 @@ function ChoosePath() {
     {
       tag: "Per Founder",
       icon: Rocket,
-      title: "ARKHEON AI",
+      title: "PILOT AI",
       desc: "Trasforma la tua idea in una startup organizzata con business model, MVP, roadmap, task, budget, rischi e piano di lancio.",
       cta: "Inizia gratis",
       to: "/signup" as const,
@@ -230,7 +230,7 @@ function ChoosePath() {
     {
       tag: "Per Team",
       icon: Building2,
-      title: "ARKHEON Enterprise",
+      title: "PILOT Enterprise",
       desc: "Gestisci idee, progetti, team e innovazione in un workspace AI pensato per aziende, scuole, incubatori e startup studio.",
       cta: "Richiedi una demo",
       to: "/enterprise" as const,
@@ -240,7 +240,7 @@ function ChoosePath() {
     {
       tag: "Per Aziende operative",
       icon: Cog,
-      title: "ARKHEON Studio",
+      title: "PILOT Studio",
       desc: "Hai un processo lento o ripetitivo? Noi analizziamo il problema e costruiamo automazioni, app e sistemi AI su misura.",
       cta: "Richiedi un audit operativo",
       to: "/studio" as const,
@@ -473,14 +473,14 @@ function Pricing() {
         <div className="grid gap-3 md:grid-cols-2">
           <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
             <div>
-              <div className="text-[13px] font-medium">ARKHEON Enterprise</div>
-              <div className="text-[13px] text-muted-foreground">Per team e organizzazioni che vogliono usare ARKHEON come workspace AI per gestire idee, progetti e innovazione.</div>
+              <div className="text-[13px] font-medium">PILOT Enterprise</div>
+              <div className="text-[13px] text-muted-foreground">Per team e organizzazioni che vogliono usare PILOT come workspace AI per gestire idee, progetti e innovazione.</div>
             </div>
             <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
           </div>
           <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
             <div>
-              <div className="text-[13px] font-medium">ARKHEON Studio</div>
+              <div className="text-[13px] font-medium">PILOT Studio</div>
               <div className="text-[13px] text-muted-foreground">Per aziende che vogliono che il nostro team costruisca automazioni, app, dashboard o AI agent su misura.</div>
             </div>
             <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit operativo</Link>
@@ -518,7 +518,7 @@ function Testimonials() {
 
 function FAQ() {
   const items = [
-    { q: "Devo essere tecnico per usare ARKHEON AI?", a: "No. La piattaforma è pensata per founder, creator, studenti e team non tecnici." },
+    { q: "Devo essere tecnico per usare PILOT AI?", a: "No. La piattaforma è pensata per founder, creator, studenti e team non tecnici." },
     { q: "Funziona per qualunque tipo di startup?", a: "Sì: app, SaaS, marketplace, servizi, e-commerce, AI tool. Adatta il percorso al tuo tipo." },
     { q: "Cosa succede dopo il free trial?", a: "Puoi scegliere Starter, Pro o Founder. Nessun blocco brutto: ti mostriamo il piano più adatto." },
     { q: "I miei dati sono privati?", a: "Sì. Ogni progetto è privato e accessibile solo a te e al tuo team." },
@@ -564,7 +564,7 @@ function Footer() {
     <footer className="border-t border-border bg-surface/40">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 md:flex-row">
         <Logo size={20} />
-        <p className="text-[12px] text-muted-foreground">© {new Date().getFullYear()} ARKHEON AI · Dalla tua idea alla tua startup.</p>
+        <p className="text-[12px] text-muted-foreground">© {new Date().getFullYear()} PILOT AI · Dalla tua idea alla tua startup.</p>
       </div>
     </footer>
   );

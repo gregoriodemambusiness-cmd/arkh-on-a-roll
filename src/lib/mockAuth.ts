@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { PlanId } from "./billing";
 
-const KEY = "arkheon-user";
+const KEY = "pilot-user";
 
 export type PaymentRecord = {
   at: number;
@@ -53,7 +53,7 @@ export function setUser(u: MockUser | null) {
   if (typeof window === "undefined") return;
   if (u) localStorage.setItem(KEY, JSON.stringify(u));
   else localStorage.removeItem(KEY);
-  window.dispatchEvent(new Event("arkheon-auth"));
+  window.dispatchEvent(new Event("pilot-auth"));
 }
 
 export function updateUser(updater: (u: MockUser) => MockUser) {
@@ -80,10 +80,10 @@ export function useUser() {
   useEffect(() => {
     setLocal(getUser());
     const h = () => setLocal(getUser());
-    window.addEventListener("arkheon-auth", h);
+    window.addEventListener("pilot-auth", h);
     window.addEventListener("storage", h);
     return () => {
-      window.removeEventListener("arkheon-auth", h);
+      window.removeEventListener("pilot-auth", h);
       window.removeEventListener("storage", h);
     };
   }, []);

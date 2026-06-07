@@ -4,7 +4,7 @@ import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/ap
 import { useProject, updateProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/roadmap")({
-  head: () => ({ meta: [{ title: "Roadmap — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Roadmap — PILOT AI" }] }),
   component: Roadmap,
 });
 

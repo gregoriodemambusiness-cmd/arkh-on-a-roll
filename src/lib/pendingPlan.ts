@@ -1,6 +1,6 @@
 import type { PaidPlanId } from "@/lib/billing";
 
-const KEY = "arkheon-pending-plan";
+const KEY = "pilot-pending-plan";
 
 export function setPendingPlan(plan: PaidPlanId) {
   if (typeof window !== "undefined") localStorage.setItem(KEY, plan);

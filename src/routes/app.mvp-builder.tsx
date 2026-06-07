@@ -3,7 +3,7 @@ import { Wrench, X, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
 export const Route = createFileRoute("/app/mvp-builder")({
-  head: () => ({ meta: [{ title: "MVP Builder — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "MVP Builder — PILOT AI" }] }),
   component: MVP,
 });
 

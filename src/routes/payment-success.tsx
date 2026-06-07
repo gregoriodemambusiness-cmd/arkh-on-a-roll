@@ -17,7 +17,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/payment-success")({
-  head: () => ({ meta: [{ title: "Pagamento test completato — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Pagamento test completato — PILOT AI" }] }),
   validateSearch: searchSchema,
   component: PaymentSuccess,
 });

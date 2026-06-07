@@ -7,7 +7,7 @@ import { getPendingPlan, clearPendingPlan } from "@/lib/pendingPlan";
 import { getProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Crea il tuo workspace — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Crea il tuo workspace — PILOT AI" }] }),
   component: () => <AuthShell mode="signup" />,
 });
 
@@ -76,7 +76,7 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
             Prima valida.<br/>Poi costruisci.
           </h2>
           <p className="mt-3 max-w-sm text-[14px] text-muted-foreground">
-            ARKHEON AI ti guida dalla prima idea al primo cliente, senza bruciare budget.
+            PILOT AI ti guida dalla prima idea al primo cliente, senza bruciare budget.
           </p>
           <div className="mt-10 space-y-3">
             {["Idea Lab + Validation","Blueprint + Business Model","MVP, Roadmap e Task guidati","Co-founder AI sempre con te"].map((t) => (
@@ -86,7 +86,7 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
             ))}
           </div>
         </div>
-        <p className="relative text-[12px] text-muted-foreground">© ARKHEON AI</p>
+        <p className="relative text-[12px] text-muted-foreground">© PILOT AI</p>
       </div>
 
       <div className="flex flex-col px-5 py-8 md:p-10">
@@ -95,7 +95,7 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
         </div>
         <div className="mx-auto mt-12 w-full max-w-sm md:mt-auto">
           <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-            {mode === "signup" ? "Crea il tuo workspace Arkheon" : "Bentornato in Arkheon"}
+            {mode === "signup" ? "Crea il tuo workspace Pilot" : "Bentornato in Pilot"}
           </h1>
           <p className="mt-1.5 text-[13.5px] text-muted-foreground">
             {mode === "signup"

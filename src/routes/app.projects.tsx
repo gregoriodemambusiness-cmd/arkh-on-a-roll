@@ -4,7 +4,7 @@ import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/compo
 import { useProject, computeHealth, saveProject } from "@/lib/projectStore";
 
 export const Route = createFileRoute("/app/projects")({
-  head: () => ({ meta: [{ title: "Progetti — ARKHEON AI" }] }),
+  head: () => ({ meta: [{ title: "Progetti — PILOT AI" }] }),
   component: Projects,
 });
 
