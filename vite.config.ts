@@ -10,6 +10,11 @@ export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
-    server: { entry: "server" },
+    server: {
+      entry: "server",
+      // Use the Vercel preset so Nitro outputs to .output/ (static → .output/public,
+      // server handler → .output/server/index.mjs) which matches vercel.json routing.
+      preset: "vercel",
+    },
   },
 });
