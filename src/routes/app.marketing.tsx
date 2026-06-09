@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Megaphone, Calendar, FileText } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/marketing")({
-  head: () => ({ meta: [{ title: "Marketing & Launch — PILOT AI" }] }),
-  component: Marketing,
-});
+
 
 function Marketing() {
   return (
@@ -56,3 +52,5 @@ function Marketing() {
     </div>
   );
 }
+
+export default Marketing;

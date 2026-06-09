@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Sparkles, Send, Wand2, HeadphonesIcon, X, Loader2, CheckCircle2 } from "lucide-react";
 import { LogoMark } from "@/components/brand/Logo";
@@ -7,10 +6,7 @@ import { useProject, analyzeBudget, computeHealth, formatEuro, type Project } fr
 import { useUser } from "@/lib/mockAuth";
 import { createSupportTicket } from "@/lib/notion";
 
-export const Route = createFileRoute("/app/co-founder")({
-  head: () => ({ meta: [{ title: "Co-founder AI — PILOT AI" }] }),
-  component: CoFounder,
-});
+export default CoFounder;
 
 type Msg = { role: "user" | "ai"; text: string };
 

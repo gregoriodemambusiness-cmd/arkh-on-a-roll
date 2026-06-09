@@ -1,4 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+"use client";
+import { usePathname } from "next/navigation";
+import NextLink from "next/link";
 import { LayoutDashboard, Folder, Sparkles, ListChecks, Gauge, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +14,7 @@ const items = [
 ];
 
 export function AppDock() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = usePathname();
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-4">
       <div className="pointer-events-auto glass-strong flex items-center gap-1 rounded-2xl px-2 py-1.5 shadow-elegant">
@@ -20,9 +22,9 @@ export function AppDock() {
           const Icon = it.icon;
           const active = pathname === it.to || (it.to !== "/app" && pathname.startsWith(it.to));
           return (
-            <Link
+            <NextLink
               key={it.to}
-              to={it.to}
+              href={it.to}
               className={cn(
                 "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[10.5px] font-medium transition-colors",
                 active ? "bg-foreground/[0.08] text-foreground" : "text-muted-foreground hover:text-foreground",
@@ -30,7 +32,7 @@ export function AppDock() {
             >
               <Icon className={cn("h-[18px] w-[18px]", active && "text-brand")} />
               <span>{it.label}</span>
-            </Link>
+            </NextLink>
           );
         })}
       </div>

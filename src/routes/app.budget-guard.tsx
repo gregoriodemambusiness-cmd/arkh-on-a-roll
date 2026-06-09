@@ -1,12 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Wallet, AlertTriangle, TrendingDown, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 import { useProject, analyzeBudget, formatEuro } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/app/budget-guard")({
-  head: () => ({ meta: [{ title: "Budget Guard — PILOT AI" }] }),
-  component: BudgetGuard,
-});
+
 
 function BudgetGuard() {
   const proj = useProject();
@@ -79,3 +75,5 @@ function BudgetGuard() {
     </div>
   );
 }
+
+export default BudgetGuard;

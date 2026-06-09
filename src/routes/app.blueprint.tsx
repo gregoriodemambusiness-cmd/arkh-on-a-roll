@@ -1,13 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { FileText, Download, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui";
 import { useProject, updateBlueprint, type Blueprint } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/app/blueprint")({
-  head: () => ({ meta: [{ title: "Blueprint — PILOT AI" }] }),
-  component: BlueprintPage,
-});
+
 
 const FIELDS: { key: keyof Blueprint; label: string }[] = [
   { key: "mission", label: "Mission" },
@@ -74,3 +70,5 @@ function BlueprintPage() {
     </div>
   );
 }
+
+export default BlueprintPage;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { motion, useInView } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -13,17 +13,6 @@ import { Moon, Sun } from "lucide-react";
 import { PLANS, type Plan, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "PILOT AI — Dalla tua idea alla tua startup." },
-      { name: "description", content: "Il co-founder AI che trasforma la tua idea in una startup organizzata. Business model, MVP, roadmap, task, brand, budget e piano di lancio." },
-      { property: "og:title", content: "PILOT AI — Dalla tua idea alla tua startup." },
-      { property: "og:description", content: "Prima valida. Poi costruisci." },
-    ],
-  }),
-  component: Landing,
-});
 
 function Landing() {
   return (
@@ -888,3 +877,5 @@ function Footer() {
     </footer>
   );
 }
+
+export default Landing;

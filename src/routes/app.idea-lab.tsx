@@ -1,13 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Lightbulb, Sparkles, ShieldCheck, Target, Lightbulb as LBIcon, ArrowRight } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
 import { useUser } from "@/lib/mockAuth";
 
-export const Route = createFileRoute("/app/idea-lab")({
-  head: () => ({ meta: [{ title: "Idea Lab — PILOT AI" }] }),
-  component: IdeaLab,
-});
+
 
 function IdeaLab() {
   const user = useUser();
@@ -86,3 +82,5 @@ function Block({ title, body }: { title: string; body: string }) {
     </div>
   );
 }
+
+export default IdeaLab;

@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Coins, TrendingUp, Calculator } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/business-model")({
-  head: () => ({ meta: [{ title: "Business Model — PILOT AI" }] }),
-  component: BusinessModel,
-});
+
 
 function BusinessModel() {
   return (
@@ -72,3 +68,5 @@ function BusinessModel() {
     </div>
   );
 }
+
+export default BusinessModel;

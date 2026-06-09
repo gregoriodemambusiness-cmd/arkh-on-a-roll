@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { X, ArrowRight, Sparkles, Check } from "lucide-react";
 import { PLAN_BY_ID, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "./PlanConfirmModal";

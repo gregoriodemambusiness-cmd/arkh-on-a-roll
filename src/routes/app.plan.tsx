@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { useMemo, useState } from "react";
 import { useUser, setPlan, type PaymentRecord } from "@/lib/mockAuth";
 import {
@@ -10,10 +10,7 @@ import { PLAN_BY_ID, PLAN_RANK, PLANS, suggestPlan, type PlanId, type PaidPlanId
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 import { useProject } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/app/plan")({
-  head: () => ({ meta: [{ title: "Plan & Usage — PILOT AI" }] }),
-  component: Plan,
-});
+export default Plan;
 
 const PATH: PlanId[] = ["free", "starter", "pro", "founder", "enterprise"];
 

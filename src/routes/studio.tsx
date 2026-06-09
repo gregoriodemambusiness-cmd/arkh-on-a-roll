@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -9,17 +9,7 @@ import { Logo } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun } from "lucide-react";
 
-export const Route = createFileRoute("/studio")({
-  head: () => ({
-    meta: [
-      { title: "PILOT Studio — Dal processo lento all'automazione operativa." },
-      { name: "description", content: "Analizziamo i tuoi processi e costruiamo automazioni, app, dashboard e AI agent su misura per la tua azienda." },
-      { property: "og:title", content: "PILOT Studio — Automazioni e AI agent su misura." },
-      { property: "og:description", content: "Hai un processo lento? Noi lo trasformiamo in automazione." },
-    ],
-  }),
-  component: StudioPage,
-});
+export default StudioPage;
 
 function StudioPage() {
   return (

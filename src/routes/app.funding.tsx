@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Banknote, FileCheck2, Calendar, Lock, Sparkles } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar, Button } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/funding")({
-  head: () => ({ meta: [{ title: "Bandi & Funding — PILOT AI" }] }),
-  component: Funding,
-});
+
 
 const opps = [
   { n: "Smart&Start Italia", s: "Suggested", match: 78, dl: "30/06/2026", req: ["Costituzione SRL","Business plan","Budget dettagliato"] },
@@ -59,3 +55,5 @@ function Funding() {
     </div>
   );
 }
+
+export default Funding;

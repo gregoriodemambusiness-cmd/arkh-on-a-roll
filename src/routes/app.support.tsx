@@ -1,12 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { LifeBuoy, Sparkles, Send, Search } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 import { useState } from "react";
 
-export const Route = createFileRoute("/app/support")({
-  head: () => ({ meta: [{ title: "Support — PILOT AI" }] }),
-  component: Support,
-});
+
 
 const faqs = [
   { q: "Come funziona la capacità mensile inclusa?", a: "Ogni piano include un utilizzo equo pensato per la tua fase. Se cresci, ti proponiamo il piano più adatto." },
@@ -97,3 +93,5 @@ function Support() {
     </div>
   );
 }
+
+export default Support;

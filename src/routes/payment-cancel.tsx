@@ -1,12 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { motion } from "framer-motion";
 import { XCircle, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
-
-export const Route = createFileRoute("/payment-cancel")({
-  head: () => ({ meta: [{ title: "Pagamento annullato — PILOT AI" }] }),
-  component: PaymentCancel,
-});
 
 function PaymentCancel() {
   return (
@@ -47,3 +42,5 @@ function PaymentCancel() {
     </div>
   );
 }
+
+export default PaymentCancel;

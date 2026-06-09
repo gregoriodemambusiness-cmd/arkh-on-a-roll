@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Receipt } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/finance")({
-  head: () => ({ meta: [{ title: "Finance — PILOT AI" }] }),
-  component: Finance,
-});
+
 
 function Finance() {
   return (
@@ -27,3 +23,5 @@ function Finance() {
     </div>
   );
 }
+
+export default Finance;

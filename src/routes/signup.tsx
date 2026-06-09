@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@/lib/nextCompat";
 import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +7,9 @@ import { getPendingPlan, clearPendingPlan } from "@/lib/pendingPlan";
 import { getProject } from "@/lib/projectStore";
 import { addClientToCRM } from "@/lib/notion";
 
-export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Crea il tuo workspace — PILOT AI" }] }),
-  component: () => <AuthShell mode="signup" />,
-});
+export default function SignupPage() {
+  return <AuthShell mode="signup" />;
+}
 
 export function AuthShell({ mode }: { mode: "signup" | "login" }) {
   const nav = useNavigate();

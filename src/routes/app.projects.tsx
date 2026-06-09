@@ -1,12 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@/lib/nextCompat";
 import { Folder, Plus, Rocket } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
 import { useProject, computeHealth, saveProject } from "@/lib/projectStore";
-
-export const Route = createFileRoute("/app/projects")({
-  head: () => ({ meta: [{ title: "Progetti — PILOT AI" }] }),
-  component: Projects,
-});
 
 function Projects() {
   const proj = useProject();
@@ -47,3 +42,5 @@ function Projects() {
     </div>
   );
 }
+
+export default Projects;

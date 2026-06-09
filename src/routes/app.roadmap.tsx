@@ -1,12 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Map } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 import { useProject, updateProject } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/app/roadmap")({
-  head: () => ({ meta: [{ title: "Roadmap — PILOT AI" }] }),
-  component: Roadmap,
-});
+
 
 function Roadmap() {
   const proj = useProject();
@@ -55,3 +51,5 @@ function Roadmap() {
     </div>
   );
 }
+
+export default Roadmap;

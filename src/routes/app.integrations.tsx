@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Plug, Lock } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/integrations")({
-  head: () => ({ meta: [{ title: "Integrations — PILOT AI" }] }),
-  component: Integrations,
-});
+
 
 const integrations = [
   { n: "Notion", d: "Sincronizza il Blueprint", plan: "Founder", status: "ready" },
@@ -39,3 +35,5 @@ function Integrations() {
     </div>
   );
 }
+
+export default Integrations;

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@/lib/nextCompat";
 import { useState, useEffect } from "react";
 import { ListChecks, Sparkles, X, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
@@ -8,10 +8,7 @@ import {
   type Task, type TaskStatus,
 } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/app/task-center")({
-  head: () => ({ meta: [{ title: "Task Center — PILOT AI" }] }),
-  component: TaskCenter,
-});
+export default TaskCenter;
 
 const cols: TaskStatus[] = ["Da fare", "In corso", "Completato"];
 

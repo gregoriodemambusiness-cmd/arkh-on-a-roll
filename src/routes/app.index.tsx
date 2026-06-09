@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@/lib/nextCompat";
 import {
   Target,
   BarChart3,
@@ -21,10 +21,7 @@ import { useProject, computeHealth, analyzeBudget, completeTask, formatEuro } fr
 import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 
-export const Route = createFileRoute("/app/")({
-  head: () => ({ meta: [{ title: "Dashboard — PILOT AI" }] }),
-  component: Dashboard,
-});
+export default Dashboard;
 
 function pickNudge(plan: string, completedTasks: number, budgetRisk: string, onboarding: any) {
   const projectType = String(onboarding?.type || onboarding?.projectType || "").toLowerCase();

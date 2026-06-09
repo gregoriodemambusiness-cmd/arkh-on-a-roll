@@ -1,4 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+"use client";
+import { usePathname } from "next/navigation";
+import NextLink from "next/link";
 import {
   LayoutDashboard, Lightbulb, Palette, FileText, Coins, Wrench, Map, ListChecks,
   ShieldCheck, Megaphone, Presentation, Banknote, Users, Receipt, Wallet, Files,
@@ -8,7 +10,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 
-const sections: { label?: string; items: { to: string; label: string; icon: any }[] }[] = [
+const sections: { label?: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   { items: [{ to: "/app", label: "Dashboard", icon: LayoutDashboard }] },
   {
     label: "Build",
@@ -60,7 +62,7 @@ const sections: { label?: string; items: { to: string; label: string; icon: any 
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = usePathname();
 
   return (
     <aside
@@ -93,9 +95,9 @@ export function AppSidebar() {
                 const active = pathname === it.to || (it.to !== "/app" && pathname.startsWith(it.to));
                 const Icon = it.icon;
                 return (
-                  <Link
+                  <NextLink
                     key={it.to}
-                    to={it.to}
+                    href={it.to}
                     className={cn(
                       "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium transition-colors",
                       active
@@ -105,7 +107,7 @@ export function AppSidebar() {
                   >
                     <Icon className={cn("h-4 w-4 shrink-0", active && "text-brand")} />
                     {!collapsed && <span className="truncate">{it.label}</span>}
-                  </Link>
+                  </NextLink>
                 );
               })}
             </div>

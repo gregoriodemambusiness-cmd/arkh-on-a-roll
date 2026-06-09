@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Palette, Globe, AtSign, FileText, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/brand-studio")({
-  head: () => ({ meta: [{ title: "Brand Studio — PILOT AI" }] }),
-  component: BrandStudio,
-});
+
 
 const palette = ["#0A0A0A", "#FFFFFF", "#1F8FFF", "#7CE0FF", "#F5F5F7"];
 
@@ -94,3 +90,5 @@ function BrandStudio() {
     </div>
   );
 }
+
+export default BrandStudio;

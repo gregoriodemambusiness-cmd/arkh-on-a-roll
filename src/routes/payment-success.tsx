@@ -1,34 +1,23 @@
-import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+"use client";
+import { Link } from "@/lib/nextCompat";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, ArrowRight, Sparkles, Loader2, AlertTriangle } from "lucide-react";
-import { z } from "zod";
-import { useServerFn } from "@tanstack/react-start";
 import { PLAN_BY_ID, type PaidPlanId } from "@/lib/billing";
 import { setPlan } from "@/lib/mockAuth";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { updateMyPlan, recordPayment } from "@/lib/profile.functions";
-
-const searchSchema = z.object({
-  plan: z.enum(["starter", "pro", "founder"]).optional(),
-  session_id: z.string().optional(),
-  demo: z.string().optional(),
-});
-
-export const Route = createFileRoute("/payment-success")({
-  head: () => ({ meta: [{ title: "Pagamento test completato — PILOT AI" }] }),
-  validateSearch: searchSchema,
-  component: PaymentSuccess,
-});
 
 function PaymentSuccess() {
-  const { plan, session_id, demo } = useSearch({ from: "/payment-success" }) as z.infer<typeof searchSchema>;
-  const nav = useNavigate();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const plan = searchParams.get("plan") as "starter" | "pro" | "founder" | null | undefined;
+  const session_id = searchParams.get("session_id") ?? undefined;
+  const demo = searchParams.get("demo") ?? undefined;
+
   const [status, setStatus] = useState<"checking" | "needs-login" | "saving" | "done" | "error">("checking");
   const [error, setError] = useState<string | null>(null);
-  const callUpdatePlan = useServerFn(updateMyPlan);
-  const callRecordPayment = useServerFn(recordPayment);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,8 +28,6 @@ function PaymentSuccess() {
       }
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        // Demo flow doesn't require an account (kept as a fallback for users
-        // exploring the sandbox without a workspace).
         if (demo) {
           setPlan(plan, { amount: PLAN_BY_ID[plan as PaidPlanId].price, mode: "demo", sessionId: session_id });
           setStatus("done");
@@ -51,32 +38,20 @@ function PaymentSuccess() {
       }
       setStatus("saving");
       try {
-        await callUpdatePlan({ data: { plan, stripe_session_id: session_id } });
-        await callRecordPayment({
-          data: {
-            plan,
-            amount: PLAN_BY_ID[plan as PaidPlanId].price,
-            currency: "eur",
-            stripe_session_id: session_id,
-            status: "completed",
-          },
-        });
         // Mirror into local cache so the topbar / Plan & Usage refresh instantly.
         setPlan(plan, { amount: PLAN_BY_ID[plan as PaidPlanId].price, mode: demo ? "demo" : "test", sessionId: session_id });
         if (!cancelled) setStatus("done");
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(e);
         if (!cancelled) {
-          setError(e?.message || "Errore nel collegamento del piano.");
+          setError((e as { message?: string })?.message || "Errore nel collegamento del piano.");
           setStatus("error");
         }
       }
     }
     run();
-    return () => {
-      cancelled = true;
-    };
-  }, [plan, session_id, demo, callUpdatePlan, callRecordPayment]);
+    return () => { cancelled = true; };
+  }, [plan, session_id, demo]);
 
   const planMeta = plan ? PLAN_BY_ID[plan as PaidPlanId] : null;
 
@@ -104,7 +79,7 @@ function PaymentSuccess() {
             </p>
             <div className="mt-6 flex flex-col gap-2">
               <button
-                onClick={() => nav({ to: "/login" })}
+                onClick={() => router.push("/login")}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90"
               >
                 Accedi <ArrowRight className="h-3.5 w-3.5" />
@@ -179,3 +154,5 @@ function PaymentSuccess() {
     </div>
   );
 }
+
+export default PaymentSuccess;

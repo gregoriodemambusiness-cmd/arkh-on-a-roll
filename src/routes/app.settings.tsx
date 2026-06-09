@@ -1,13 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@/lib/nextCompat";
 import { useState } from "react";
 import { Settings as SetIcon, User, Building2, Lock, Bell, Sliders, Download } from "lucide-react";
 import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui";
 import { useUser, setUser } from "@/lib/mockAuth";
 
-export const Route = createFileRoute("/app/settings")({
-  head: () => ({ meta: [{ title: "Settings — PILOT AI" }] }),
-  component: SettingsPage,
-});
+export default SettingsPage;
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },

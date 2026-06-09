@@ -1,13 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { ShieldAlert, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 import { useProject, resolveAlert } from "@/lib/projectStore";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const Route = createFileRoute("/app/founder-guard")({
-  head: () => ({ meta: [{ title: "Founder Guard — PILOT AI" }] }),
-  component: FounderGuard,
-});
+
 
 function FounderGuard() {
   const proj = useProject();
@@ -81,3 +77,5 @@ function FounderGuard() {
     </div>
   );
 }
+
+export default FounderGuard;

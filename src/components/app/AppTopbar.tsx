@@ -1,8 +1,9 @@
+"use client";
 import { useTheme } from "@/lib/theme";
 import { Bell, LogOut, Moon, Search, Sun } from "lucide-react";
 import { useUser } from "@/lib/mockAuth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/billing";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@/lib/nextCompat";
 import { signOutAndClear } from "@/lib/authSync";
 
 export function AppTopbar({ title }: { title?: string }) {

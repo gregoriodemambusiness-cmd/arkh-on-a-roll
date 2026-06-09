@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { X, UserPlus, LogIn, Lock } from "lucide-react";
 import { PLAN_BY_ID, type PaidPlanId } from "@/lib/billing";
 import { setPendingPlan } from "@/lib/pendingPlan";

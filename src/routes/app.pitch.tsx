@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Presentation, Mail, FileText, Sparkles } from "lucide-react";
 import { Card, CardHeader, PageHeader, Button } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/pitch")({
-  head: () => ({ meta: [{ title: "Pitch Room — PILOT AI" }] }),
-  component: PitchRoom,
-});
+
 
 function PitchRoom() {
   return (
@@ -44,3 +40,5 @@ function PitchRoom() {
     </div>
   );
 }
+
+export default PitchRoom;

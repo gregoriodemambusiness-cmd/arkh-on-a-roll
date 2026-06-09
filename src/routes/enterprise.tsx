@@ -1,17 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@/lib/nextCompat";
 import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { ArrowRight, Building2, Check, Cog } from "lucide-react";
 
-export const Route = createFileRoute("/enterprise")({
-  head: () => ({
-    meta: [
-      { title: "PILOT Enterprise — Workspace AI per team e organizzazioni" },
-      { name: "description", content: "Gestisci idee, progetti, team e innovazione in un workspace AI per aziende, scuole, incubatori e startup studio." },
-    ],
-  }),
-  component: Enterprise,
-});
+export default Enterprise;
 
 function Enterprise() {
   const [sent, setSent] = useState(false);

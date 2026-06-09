@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@/lib/nextCompat";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Logo, LogoMark } from "@/components/brand/Logo";
@@ -7,13 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { generateProject } from "@/lib/projectGenerator";
 import { saveProject } from "@/lib/projectStore";
 
-export const Route = createFileRoute("/onboarding")({
-  beforeLoad: () => {
-    if (typeof window !== "undefined" && !getUser()) throw redirect({ to: "/signup" });
-  },
-  head: () => ({ meta: [{ title: "Onboarding — PILOT AI" }] }),
-  component: Onboarding,
-});
+export default Onboarding;
 
 const steps = [
   { key: "idea", q: "Qual è la tua idea?", placeholder: "Es. App che aiuta freelance a gestire tasse e clienti…", type: "textarea" },

@@ -1,11 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Users } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button } from "@/components/app/ui";
 
-export const Route = createFileRoute("/app/team")({
-  head: () => ({ meta: [{ title: "Team & Roles — PILOT AI" }] }),
-  component: Team,
-});
+
 
 function Team() {
   return (
@@ -33,3 +29,5 @@ function Team() {
     </div>
   );
 }
+
+export default Team;

@@ -1,6 +1,6 @@
+"use client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useServerFn } from "@tanstack/react-start";
 import { X, Check, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { PLAN_BY_ID, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { createCheckoutSession } from "@/lib/checkout.functions";
@@ -18,7 +18,6 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
   const [needsAuth, setNeedsAuth] = useState<PaidPlanId | null>(null);
-  const checkout = useServerFn(createCheckoutSession);
 
   useEffect(() => {
     if (plan) {
@@ -44,17 +43,20 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
         onClose();
         return;
       }
-      const res = await checkout({
-        data: { plan, origin: window.location.origin },
+      const res = await createCheckoutSession({
+        plan,
+        origin: window.location.origin,
+        userId: sess.session.user.id,
+        email: sess.session.user.email,
       });
       if (res.ok) {
         window.location.href = res.url;
         return;
       }
       setError(res.error);
-      setMissing(!!res.missingKeys);
-    } catch (e: any) {
-      setError(e?.message || "Errore inatteso durante l'avvio del checkout.");
+      setMissing(!!(res as { missingKeys?: boolean }).missingKeys);
+    } catch (e: unknown) {
+      setError((e as { message?: string })?.message || "Errore inatteso durante l'avvio del checkout.");
     } finally {
       setLoading(false);
     }
