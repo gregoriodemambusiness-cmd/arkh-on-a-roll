@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { getPendingPlan, clearPendingPlan } from "@/lib/pendingPlan";
 import { getProject } from "@/lib/projectStore";
+import { addClientToCRM } from "@/lib/notion";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Crea il tuo workspace — PILOT AI" }] }),
@@ -54,6 +55,13 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
           },
         });
         if (error) throw error;
+        // Fire-and-forget: CRM Notion — non blocca il redirect se fallisce
+        addClientToCRM({
+          name: name || email.split("@")[0],
+          email,
+          plan: "free",
+          healthScore: 50,
+        }).catch((err) => console.warn("[notion] addClientToCRM:", err));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

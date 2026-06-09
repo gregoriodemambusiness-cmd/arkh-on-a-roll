@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, Send, Wand2 } from "lucide-react";
+import { Sparkles, Send, Wand2, HeadphonesIcon, X, Loader2, CheckCircle2 } from "lucide-react";
 import { LogoMark } from "@/components/brand/Logo";
 import { Card, PageHeader, Pill } from "@/components/app/ui";
 import { useProject, analyzeBudget, computeHealth, formatEuro, type Project } from "@/lib/projectStore";
+import { useUser } from "@/lib/mockAuth";
+import { createSupportTicket } from "@/lib/notion";
 
 export const Route = createFileRoute("/app/co-founder")({
   head: () => ({ meta: [{ title: "Co-founder AI — PILOT AI" }] }),
@@ -48,12 +50,103 @@ function replyFor(question: string, p: Project): string {
   return `Capito. Considera lo stato attuale: health score ${score}/100, ${todo.length} task da completare, fase "${p.onboarding.stage}". La prossima azione concreta: ${next?.title || "pianifica la fase successiva"}.`;
 }
 
+function SupportModal({ onClose, userEmail }: { onClose: () => void; userEmail: string }) {
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !message.trim()) return;
+    setStatus("loading");
+    try {
+      await createSupportTicket({
+        title: title.trim(),
+        email: userEmail,
+        message: message.trim(),
+        category: "domanda",
+        priority: "media",
+      });
+      setStatus("ok");
+    } catch (err) {
+      console.error("[notion] createSupportTicket:", err);
+      setStatus("error");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-elegant">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="mb-5">
+          <h2 className="font-display text-[17px] font-semibold tracking-tight">Contatta il supporto</h2>
+          <p className="mt-1 text-[13px] text-muted-foreground">Ti risponderemo entro 24 ore lavorative.</p>
+        </div>
+
+        {status === "ok" ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <CheckCircle2 className="h-10 w-10 text-brand" />
+            <p className="font-medium">Ticket inviato!</p>
+            <p className="text-[13px] text-muted-foreground">Il nostro team ti contatterà presto.</p>
+            <button onClick={onClose} className="mt-2 rounded-lg bg-foreground px-4 py-2 text-[13px] font-medium text-background hover:opacity-90">
+              Chiudi
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-medium text-muted-foreground">Oggetto</span>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Es. Non riesco ad aggiornare il piano"
+                required
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-[14px] outline-none transition focus:border-brand"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-medium text-muted-foreground">Messaggio</span>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Descrivi il problema o la domanda…"
+                rows={4}
+                required
+                className="w-full resize-none rounded-lg border border-border bg-surface px-3 py-2.5 text-[14px] outline-none transition focus:border-brand"
+              />
+            </label>
+            {status === "error" && (
+              <p className="text-[12.5px] text-destructive">Invio fallito. Controlla la connessione e riprova.</p>
+            )}
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-[13.5px] font-medium text-background hover:opacity-90 disabled:opacity-60"
+            >
+              {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {status === "loading" ? "Invio…" : "Invia ticket"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CoFounder() {
   const proj = useProject();
+  const user = useUser();
   const [msgs, setMsgs] = useState<Msg[]>([
     { role: "ai", text: "Ciao 👋 Sono il tuo Co-founder AI. Conosco il tuo progetto. Da dove vuoi iniziare oggi?" },
   ]);
   const [input, setInput] = useState("");
+  const [showSupport, setShowSupport] = useState(false);
 
   const send = (text?: string) => {
     const t = (text ?? input).trim();
@@ -76,10 +169,26 @@ function CoFounder() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-160px)] max-w-4xl flex-col space-y-4">
+      {showSupport && (
+        <SupportModal
+          onClose={() => setShowSupport(false)}
+          userEmail={user?.email ?? ""}
+        />
+      )}
       <PageHeader
         title="Co-founder AI"
         subtitle={proj ? `Conosce: ${proj.name} · ${proj.onboarding.stage}` : "Crea prima un progetto."}
-        action={<Pill tone="brand"><Sparkles className="h-3 w-3" /> Online</Pill>}
+        action={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSupport(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:border-foreground/20 hover:text-foreground"
+            >
+              <HeadphonesIcon className="h-3.5 w-3.5" /> Contatta supporto
+            </button>
+            <Pill tone="brand"><Sparkles className="h-3 w-3" /> Online</Pill>
+          </div>
+        }
       />
 
       <Card className="flex flex-1 flex-col">
