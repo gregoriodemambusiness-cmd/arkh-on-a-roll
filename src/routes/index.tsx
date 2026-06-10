@@ -719,23 +719,15 @@ function PricingCard({
     const r = e.currentTarget.getBoundingClientRect();
     const cx = e.clientX - r.left - r.width / 2;
     const cy = e.clientY - r.top - r.height / 2;
-    setTilt({ x: -(cy / r.height) * 8, y: (cx / r.width) * 8 });
+    setTilt({ x: -(cy / r.height) * 5, y: (cx / r.width) * 5 });
   };
 
   const isFree = plan.id === "free";
   const isPaid = ["starter", "pro", "founder"].includes(plan.id);
 
+  // Card body (no badge — badge lives outside overflow-hidden layers for Pro)
   const cardInner = (
     <div className="relative flex h-full flex-col rounded-2xl bg-card p-5">
-      {plan.featured && (
-        <motion.div
-          className="absolute -top-3 left-5 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background"
-          animate={{ scale: [1, 1.06, 1] }}
-          transition={{ duration: 2.5, repeat: Infinity }}
-        >
-          Più scelto
-        </motion.div>
-      )}
       <div className="text-[13px] font-medium text-muted-foreground">{plan.name}</div>
       <div className="mt-2 flex items-end gap-1">
         <span className="font-display text-3xl font-semibold">
@@ -750,7 +742,7 @@ function PricingCard({
             key={f}
             initial={{ opacity: 0, x: -8 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 0.3 + index * 0.1 + fi * 0.05 }}
+            transition={{ delay: 0.3 + index * 0.15 + fi * 0.05 }}
             className="flex items-start gap-2 text-[13px]"
           >
             <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
@@ -785,26 +777,38 @@ function PricingCard({
       ref={cardRef}
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.5, delay: index * 0.15 }}
       style={{ rotateX: tilt.x, rotateY: tilt.y, transformPerspective: 900 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setTilt({ x: 0, y: 0 })}
       className="flex h-full flex-col"
     >
       {plan.featured ? (
-        /* Rotating conic-gradient border */
-        <motion.div
-          className="relative flex-1 rounded-2xl"
-          animate={{
-            boxShadow: [
-              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.45), 0 0 24px oklch(0.62 0.2 235 / 0.18)",
-              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.85), 0 0 44px oklch(0.62 0.2 235 / 0.35)",
-              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.45), 0 0 24px oklch(0.62 0.2 235 / 0.18)",
-            ],
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {/* Spinning gradient ring */}
+        /* Rotating brand-color border + glow */
+        <div className="relative flex-1">
+          {/* Badge sits here — outside any overflow-hidden layer */}
+          <motion.div
+            className="absolute -top-3 left-5 z-20 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background"
+            animate={{ scale: [1, 1.06, 1] }}
+            transition={{ duration: 2.5, repeat: Infinity }}
+          >
+            Più scelto
+          </motion.div>
+
+          {/* Pulsing brand glow ring */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl"
+            animate={{
+              boxShadow: [
+                "0 0 0 1.5px oklch(0.62 0.2 235 / 0.35), 0 0 20px oklch(0.62 0.2 235 / 0.10)",
+                "0 0 0 1.5px oklch(0.62 0.2 235 / 0.60), 0 0 36px oklch(0.62 0.2 235 / 0.20)",
+                "0 0 0 1.5px oklch(0.62 0.2 235 / 0.35), 0 0 20px oklch(0.62 0.2 235 / 0.10)",
+              ],
+            }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Spinning brand conic-gradient ring */}
           <div className="absolute inset-0 overflow-hidden rounded-2xl">
             <motion.div
               className="absolute inset-[-100%] m-auto"
@@ -812,14 +816,15 @@ function PricingCard({
                 width: "200%",
                 height: "200%",
                 background:
-                  "conic-gradient(from 0deg, oklch(0.62 0.2 235), oklch(0.70 0.2 290), oklch(0.78 0.18 190), oklch(0.62 0.2 235))",
+                  "conic-gradient(from 0deg, oklch(0.62 0.2 235), oklch(0.70 0.19 232), oklch(0.78 0.16 228), oklch(0.70 0.19 232), oklch(0.62 0.2 235))",
               }}
               animate={{ rotate: 360 }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
             />
           </div>
-          <div className="relative m-[1.5px] rounded-[14px] overflow-hidden">{cardInner}</div>
-        </motion.div>
+
+          <div className="relative m-[1.5px] overflow-hidden rounded-[14px]">{cardInner}</div>
+        </div>
       ) : (
         <div className="flex-1 rounded-2xl border border-border">{cardInner}</div>
       )}
@@ -920,6 +925,12 @@ function Pricing() {
 
       {/* ─── Enterprise: near-black section ─── */}
       <div className="relative overflow-hidden bg-[#0A0A0A] py-20">
+        {/* top fade: softens the cut from the white/light section above */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-16"
+          style={{ background: "linear-gradient(to bottom, var(--background), transparent)" }}
+        />
         {/* subtle grid lines */}
         <div
           aria-hidden
@@ -1075,6 +1086,12 @@ function Pricing() {
             background:
               "radial-gradient(75% 60% at 65% 50%, color-mix(in oklab,var(--brand) 18%,transparent) 0%,transparent 100%)",
           }}
+        />
+        {/* bottom fade: eases into the Testimonials section below */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
+          style={{ background: "linear-gradient(to top, var(--background), transparent)" }}
         />
         <div className="relative mx-auto max-w-6xl px-5">
           <div className="grid gap-12 md:grid-cols-2 md:items-start">
