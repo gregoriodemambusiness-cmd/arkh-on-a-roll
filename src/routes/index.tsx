@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@/lib/nextCompat";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import {
   ArrowRight, Sparkles, ShieldCheck, Wallet, Map, ListChecks, Target,
@@ -668,83 +668,511 @@ function Targets() {
   );
 }
 
-// ─────────────── PRICING (unchanged) ───────────────
+// ─────────────── PRICING (enterprise redesign) ───────────────
+
+function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref as React.RefObject<Element>, { once: true });
+  useEffect(() => {
+    if (!isInView || !ref.current) return;
+    const el = ref.current;
+    const ctrl = animate(0, target, {
+      duration: 1.5,
+      ease: "easeOut",
+      onUpdate(v) { el.textContent = Math.round(v).toString() + suffix; },
+    });
+    return ctrl.stop;
+  }, [isInView, target, suffix]);
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+function DotGrid() {
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle, color-mix(in oklab, var(--brand) 28%, transparent) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+      animate={{ opacity: [0.3, 0.65, 0.3] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+function PricingCard({
+  plan,
+  index,
+  onSelect,
+}: {
+  plan: Plan;
+  index: number;
+  onSelect?: () => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef as React.RefObject<Element>, { once: true, margin: "0px 0px -40px 0px" });
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const cx = e.clientX - r.left - r.width / 2;
+    const cy = e.clientY - r.top - r.height / 2;
+    setTilt({ x: -(cy / r.height) * 8, y: (cx / r.width) * 8 });
+  };
+
+  const isFree = plan.id === "free";
+  const isPaid = ["starter", "pro", "founder"].includes(plan.id);
+
+  const cardInner = (
+    <div className="relative flex h-full flex-col rounded-2xl bg-card p-5">
+      {plan.featured && (
+        <motion.div
+          className="absolute -top-3 left-5 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background"
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity }}
+        >
+          Più scelto
+        </motion.div>
+      )}
+      <div className="text-[13px] font-medium text-muted-foreground">{plan.name}</div>
+      <div className="mt-2 flex items-end gap-1">
+        <span className="font-display text-3xl font-semibold">
+          {plan.price === 0 ? "0€" : <AnimatedCounter target={plan.price} suffix="€" />}
+        </span>
+        <span className="mb-1 text-[12px] text-muted-foreground">{plan.per}</span>
+      </div>
+      <p className="mt-1 text-[13px] text-muted-foreground">{plan.desc}</p>
+      <ul className="mt-4 flex-1 space-y-2">
+        {plan.features.slice(0, 7).map((f, fi) => (
+          <motion.li
+            key={f}
+            initial={{ opacity: 0, x: -8 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.3 + index * 0.1 + fi * 0.05 }}
+            className="flex items-start gap-2 text-[13px]"
+          >
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+            {f}
+          </motion.li>
+        ))}
+      </ul>
+      {isFree ? (
+        <Link
+          to="/signup"
+          className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-accent"
+        >
+          {plan.cta}
+        </Link>
+      ) : isPaid ? (
+        <button
+          onClick={onSelect}
+          className={`mt-5 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-[13px] font-medium transition-opacity ${
+            plan.featured
+              ? "bg-foreground text-background hover:opacity-90"
+              : "border border-border text-foreground hover:bg-accent"
+          }`}
+        >
+          {plan.cta}
+        </button>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      style={{ rotateX: tilt.x, rotateY: tilt.y, transformPerspective: 900 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+      className="flex h-full flex-col"
+    >
+      {plan.featured ? (
+        /* Rotating conic-gradient border */
+        <motion.div
+          className="relative flex-1 rounded-2xl"
+          animate={{
+            boxShadow: [
+              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.45), 0 0 24px oklch(0.62 0.2 235 / 0.18)",
+              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.85), 0 0 44px oklch(0.62 0.2 235 / 0.35)",
+              "0 0 0 1.5px oklch(0.62 0.2 235 / 0.45), 0 0 24px oklch(0.62 0.2 235 / 0.18)",
+            ],
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {/* Spinning gradient ring */}
+          <div className="absolute inset-0 overflow-hidden rounded-2xl">
+            <motion.div
+              className="absolute inset-[-100%] m-auto"
+              style={{
+                width: "200%",
+                height: "200%",
+                background:
+                  "conic-gradient(from 0deg, oklch(0.62 0.2 235), oklch(0.70 0.2 290), oklch(0.78 0.18 190), oklch(0.62 0.2 235))",
+              }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+          <div className="relative m-[1.5px] rounded-[14px] overflow-hidden">{cardInner}</div>
+        </motion.div>
+      ) : (
+        <div className="flex-1 rounded-2xl border border-border">{cardInner}</div>
+      )}
+    </motion.div>
+  );
+}
 
 function Pricing() {
   const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
-  const paid = (PLANS.filter((p) => p.id !== "enterprise") as Plan[]);
+  const paid = PLANS.filter((p) => p.id !== "enterprise") as Plan[];
+  const separatorRef = useRef<HTMLDivElement>(null);
+  const separatorInView = useInView(separatorRef as React.RefObject<Element>, { once: true });
+
+  const studioServices = [
+    { name: "Audit Operativo", price: 299, suffix: "€", note: "", desc: "Analisi processi + roadmap automazioni" },
+    { name: "Prototipo AI", price: 1500, suffix: "€", note: "", desc: "Proof-of-concept in 2 settimane" },
+    { name: "MVP Completo", price: 5000, suffix: "€", note: "", desc: "App o agent da zero, production-ready" },
+    { name: "Manutenzione", price: 500, suffix: "€", note: "/mese", desc: "Monitoring, aggiornamenti e supporto" },
+  ];
+
   return (
-    <section id="pricing" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
-      <div className="mb-10 text-center">
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Un piano per ogni fase.</h2>
-        <p className="mt-3 text-muted-foreground">Tutti i piani includono il percorso completo. La differenza è profondità, automazione, collaborazione e supporto.</p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-4">
-        {paid.map((p) => {
-          const isFree = p.id === "free";
-          const isPaid = p.id === "starter" || p.id === "pro" || p.id === "founder";
-          return (
-            <div
+    <section id="pricing" className="overflow-hidden">
+
+      {/* ─── B2C: dot grid + plans ─── */}
+      <div className="relative mx-auto max-w-6xl px-5 py-16 md:py-24">
+        <DotGrid />
+        <motion.div
+          className="relative mb-10 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.span
+            className="mb-3 inline-block rounded-full border border-border/60 px-3 py-1 text-[12px] font-medium"
+            style={{
+              background:
+                "linear-gradient(90deg, color-mix(in oklab,var(--brand) 14%,transparent), color-mix(in oklab,var(--brand-glow) 10%,transparent))",
+            }}
+            animate={{ backgroundSize: ["100% 100%", "200% 100%", "100% 100%"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            Per individui e founder
+          </motion.span>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+            Un piano per ogni fase.
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Tutti i piani includono il percorso completo. La differenza è profondità,
+            automazione, collaborazione e supporto.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-4 md:grid-cols-4" style={{ perspective: "1200px" }}>
+          {paid.map((p, i) => (
+            <PricingCard
               key={p.id}
-              className={`relative flex flex-col rounded-2xl border bg-card p-5 ${p.featured ? "border-foreground shadow-elegant" : "border-border"}`}
+              plan={p}
+              index={i}
+              onSelect={
+                ["starter", "pro", "founder"].includes(p.id)
+                  ? () => setConfirm(p.id as PaidPlanId)
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Separator: expanding lines from centre ─── */}
+      <div
+        ref={separatorRef}
+        className="mx-auto flex max-w-4xl items-center gap-6 px-5 pb-4 pt-2"
+      >
+        <motion.div
+          className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
+          initial={{ scaleX: 0 }}
+          animate={separatorInView ? { scaleX: 1 } : {}}
+          style={{ transformOrigin: "right" }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+        />
+        <motion.span
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={separatorInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.4, delay: 0.45 }}
+          className="whitespace-nowrap text-[12.5px] font-medium uppercase tracking-widest text-muted-foreground"
+        >
+          Per team e aziende
+        </motion.span>
+        <motion.div
+          className="h-px flex-1 bg-gradient-to-l from-transparent to-border"
+          initial={{ scaleX: 0 }}
+          animate={separatorInView ? { scaleX: 1 } : {}}
+          style={{ transformOrigin: "left" }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+        />
+      </div>
+
+      {/* ─── Enterprise: near-black section ─── */}
+      <div className="relative overflow-hidden bg-[#0A0A0A] py-20">
+        {/* subtle grid lines */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.024) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.024) 1px,transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="relative mx-auto max-w-6xl px-5">
+          <div className="grid gap-12 md:grid-cols-2 md:items-center">
+            {/* left */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              {p.featured && (
-                <div className="absolute -top-3 left-5 rounded-full bg-foreground px-2.5 py-0.5 text-[10.5px] font-medium text-background">Più scelto</div>
-              )}
-              <div className="text-[13px] font-medium text-muted-foreground">{p.name}</div>
-              <div className="mt-2 flex items-end gap-1">
-                <span className="font-display text-3xl font-semibold">{p.priceLabel}</span>
-                <span className="mb-1 text-[12px] text-muted-foreground">{p.per}</span>
+              <motion.div
+                className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/6 text-white"
+                animate={{ rotate: [0, 6, -6, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Building2 className="h-7 w-7" />
+              </motion.div>
+              <h3 className="font-display text-3xl font-semibold text-white md:text-4xl">
+                PILOT Enterprise
+              </h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-white/55">
+                Il workspace AI per team e organizzazioni che vogliono gestire idee,
+                progetti e innovazione a scala.
+              </p>
+
+              {/* stat counters */}
+              <div className="mt-8 flex gap-12">
+                {[
+                  { target: 500, suffix: "+", label: "Aziende in lista d'attesa" },
+                  { target: 12, suffix: "x", label: "Velocità decision-making" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <div className="font-display text-4xl font-bold text-white">
+                      <AnimatedCounter target={s.target} suffix={s.suffix} />
+                    </div>
+                    <div className="mt-1 text-[12px] text-white/38">{s.label}</div>
+                  </div>
+                ))}
               </div>
-              <p className="mt-1 text-[13px] text-muted-foreground">{p.desc}</p>
-              <ul className="mt-4 flex-1 space-y-2">
-                {p.features.slice(0, 7).map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-[13px]">
-                    <Check className="mt-0.5 h-3.5 w-3.5 text-brand" /> {f}
-                  </li>
+
+              {/* feature list */}
+              <ul className="mt-8 space-y-3">
+                {[
+                  "Workspace multi-team con ruoli e permessi",
+                  "Dashboard centralizzata progetti e KPI",
+                  "AI agent personalizzati per i tuoi processi",
+                  "Integrazioni Notion, Slack, CRM su misura",
+                  "SLA, onboarding dedicato, supporto prioritario",
+                ].map((f, i) => (
+                  <motion.li
+                    key={f}
+                    initial={{ opacity: 0, x: -16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1 + i * 0.07 }}
+                    className="flex items-center gap-3 text-[14px] text-white/65"
+                  >
+                    <motion.span
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10"
+                      animate={{ scale: [1, 1.18, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.35 }}
+                    >
+                      <Check className="h-3 w-3 text-white" />
+                    </motion.span>
+                    {f}
+                  </motion.li>
                 ))}
               </ul>
-              {isFree ? (
+
+              {/* CTA with shimmer */}
+              <motion.div
+                className="mt-8"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.55 }}
+              >
                 <Link
-                  to="/signup"
-                  className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-accent"
+                  to="/enterprise"
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-white px-6 py-3 text-[14px] font-semibold text-black"
                 >
-                  {p.cta}
+                  <motion.span
+                    className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    initial={{ x: "-120%" }}
+                    animate={{ x: "220%" }}
+                    transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.2, ease: "easeInOut" }}
+                  />
+                  <span className="relative">Richiedi una demo</span>
+                  <ArrowRight className="relative h-4 w-4" />
                 </Link>
-              ) : isPaid ? (
-                <button
-                  onClick={() => setConfirm(p.id as PaidPlanId)}
-                  className={`mt-5 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-[13px] font-medium ${p.featured ? "bg-foreground text-background hover:opacity-90" : "border border-border text-foreground hover:bg-accent"}`}
+              </motion.div>
+            </motion.div>
+
+            {/* right: stat cards */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="hidden space-y-3 md:block"
+            >
+              {[
+                { icon: Users, label: "Team attivi", value: "1–500", color: "oklch(0.62 0.2 235)" },
+                { icon: BarChart3, label: "Progetti gestiti", value: "illimitati", color: "oklch(0.70 0.18 290)" },
+                { icon: Zap, label: "Automazioni AI", value: "custom", color: "oklch(0.78 0.18 190)" },
+                { icon: ShieldCheck, label: "SLA garantito", value: "99.9%", color: "oklch(0.72 0.22 150)" },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, x: 22 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 + i * 0.09 }}
+                  whileHover={{ x: 6 }}
+                  className="flex items-center gap-4 rounded-xl border border-white/8 bg-white/[0.04] px-5 py-4"
                 >
-                  {p.cta}
-                </button>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-10">
-        <div className="mb-4 text-center">
-          <h3 className="font-display text-xl font-semibold tracking-tight">Quando il progetto cresce</h3>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">Due percorsi diversi per organizzazioni e aziende operative.</p>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
-            <div>
-              <div className="text-[13px] font-medium">PILOT Enterprise</div>
-              <div className="text-[13px] text-muted-foreground">Per team e organizzazioni che vogliono usare PILOT come workspace AI per gestire idee, progetti e innovazione.</div>
-            </div>
-            <Link to="/enterprise" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi una demo</Link>
-          </div>
-          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5 md:flex-row md:items-center">
-            <div>
-              <div className="text-[13px] font-medium">PILOT Studio</div>
-              <div className="text-[13px] text-muted-foreground">Per aziende che vogliono che il nostro team costruisca automazioni, app, dashboard o AI agent su misura.</div>
-            </div>
-            <Link to="/studio" className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium hover:bg-accent">Richiedi un audit operativo</Link>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/8">
+                    <item.icon className="h-5 w-5" style={{ color: item.color }} />
+                  </div>
+                  <div>
+                    <div className="text-[12px] text-white/38">{item.label}</div>
+                    <div className="text-[15px] font-semibold text-white">{item.value}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </div>
+
+      {/* ─── Studio: brand-tinted section ─── */}
+      <div
+        className="relative overflow-hidden py-20"
+        style={{
+          background:
+            "color-mix(in oklab, var(--brand) 10%, var(--background))",
+        }}
+      >
+        {/* radial brand glow */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(75% 60% at 65% 50%, color-mix(in oklab,var(--brand) 18%,transparent) 0%,transparent 100%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-6xl px-5">
+          <div className="grid gap-12 md:grid-cols-2 md:items-start">
+            {/* left */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <motion.div
+                className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/15 text-brand"
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Rocket className="h-7 w-7" />
+              </motion.div>
+              <h3 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+                PILOT Studio
+              </h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+                Per aziende che vogliono che il nostro team costruisca automazioni,
+                app, dashboard o AI agent su misura.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {[
+                  "Discovery call gratuita con il nostro team",
+                  "Sviluppo custom in sprint da 2 settimane",
+                  "Stack AI: Claude, GPT-4, Gemini, agenti locali",
+                  "Deliverable: codice + documentazione + training",
+                  "Post-launch: monitoring e manutenzione inclusa",
+                ].map((f, i) => (
+                  <motion.li
+                    key={f}
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.08 + i * 0.07 }}
+                    className="flex items-center gap-3 text-[14px] text-muted-foreground"
+                  >
+                    <Check className="h-4 w-4 shrink-0 text-brand" />
+                    {f}
+                  </motion.li>
+                ))}
+              </ul>
+
+              {/* CTA with pulse ring */}
+              <motion.div
+                className="mt-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+              >
+                <Link
+                  to="/studio"
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-brand px-6 py-3 text-[14px] font-semibold text-brand-foreground"
+                >
+                  <motion.span
+                    className="absolute inset-0 rounded-xl bg-brand-foreground/10"
+                    animate={{ scale: [1, 1.5, 1], opacity: [0.25, 0, 0.25] }}
+                    transition={{ duration: 2.5, repeat: Infinity }}
+                  />
+                  <span className="relative">Richiedi un audit operativo</span>
+                  <ArrowRight className="relative h-4 w-4" />
+                </Link>
+              </motion.div>
+            </motion.div>
+
+            {/* right: service price cards */}
+            <div className="grid grid-cols-2 gap-3">
+              {studioServices.map((s, i) => (
+                <motion.div
+                  key={s.name}
+                  initial={{ opacity: 0, y: 32 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: 0.08 + i * 0.1 }}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  className="flex flex-col rounded-2xl border border-border/50 bg-background/65 p-4 backdrop-blur"
+                >
+                  <div className="flex items-end gap-1 font-display text-2xl font-semibold">
+                    <AnimatedCounter target={s.price} suffix={s.suffix} />
+                    {s.note && (
+                      <span className="mb-0.5 text-[12px] font-normal text-muted-foreground">
+                        {s.note}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 text-[13px] font-medium">{s.name}</div>
+                  <div className="mt-1 text-[12px] text-muted-foreground">{s.desc}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <PlanConfirmModal plan={confirm} onClose={() => setConfirm(null)} />
     </section>
   );
