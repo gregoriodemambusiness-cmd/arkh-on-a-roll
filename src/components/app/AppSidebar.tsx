@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/Logo";
+import { WorkspaceSidebarPanel } from "@/components/app/WorkspaceSidebar";
 
 const sections: { label?: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   { items: [{ to: "/app", label: "Dashboard", icon: LayoutDashboard }] },
@@ -81,6 +82,9 @@ export function AppSidebar() {
           <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
         </button>
       </div>
+
+      {/* Workspace switcher */}
+      <WorkspaceSidebarPanel collapsed={collapsed} />
 
       <nav className="scrollbar-thin flex-1 space-y-5 overflow-y-auto px-2.5 pb-6">
         {sections.map((sec, i) => (

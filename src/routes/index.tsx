@@ -12,11 +12,32 @@ import { useTheme } from "@/lib/theme";
 import { Moon, Sun } from "lucide-react";
 import { PLANS, type Plan, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
+import { WelcomeModal } from "@/components/app/WelcomeModal";
+import { listWorkspaces } from "@/lib/workspaces";
+import { supabase } from "@/integrations/supabase/client";
 
 
 function Landing() {
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [hasWorkspaces, setHasWorkspaces] = useState(false);
+
+  useEffect(() => {
+    const flag = sessionStorage.getItem("pilot-welcome");
+    if (!flag) return;
+    sessionStorage.removeItem("pilot-welcome");
+
+    // Check auth + workspace count
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const ws = await listWorkspaces();
+      setHasWorkspaces(ws.length > 0);
+      setWelcomeOpen(true);
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <WelcomeModal open={welcomeOpen} onClose={() => setWelcomeOpen(false)} hasWorkspaces={hasWorkspaces} />
       <PublicNav />
       <Hero />
       <SocialProofBar />
