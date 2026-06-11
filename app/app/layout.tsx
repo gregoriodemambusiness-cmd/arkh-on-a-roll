@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { AppDock } from "@/components/app/AppDock";
 import { AppTopbar } from "@/components/app/AppTopbar";
@@ -8,21 +9,29 @@ import { listWorkspaces } from "@/lib/workspaces";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [hasWorkspaces, setHasWorkspaces] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const flag = sessionStorage.getItem("pilot-welcome");
-    if (!flag) return;
-    sessionStorage.removeItem("pilot-welcome");
-
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
+      if (!session) {
+        router.replace("/login");
+        return;
+      }
+      setAuthChecked(true);
+
+      const flag = sessionStorage.getItem("pilot-welcome");
+      if (!flag) return;
+      sessionStorage.removeItem("pilot-welcome");
       const ws = await listWorkspaces();
       setHasWorkspaces(ws.length > 0);
       setWelcomeOpen(true);
     });
-  }, []);
+  }, [router]);
+
+  if (!authChecked) return null;
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">

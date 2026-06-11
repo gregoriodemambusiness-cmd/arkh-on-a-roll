@@ -1,5 +1,7 @@
+"use client";
 import React from "react";
 import { Link } from "@/lib/nextCompat";
+import { useRouter } from "next/navigation";
 import { motion, useInView, animate } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -18,22 +20,31 @@ import { supabase } from "@/integrations/supabase/client";
 
 
 function Landing() {
+  const router = useRouter();
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [hasWorkspaces, setHasWorkspaces] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const flag = sessionStorage.getItem("pilot-welcome");
-    if (!flag) return;
-    sessionStorage.removeItem("pilot-welcome");
-
-    // Check auth + workspace count
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
+      if (session) {
+        // Already logged in — skip landing and go straight to workspace
+        router.replace("/app");
+        return;
+      }
+      setAuthChecked(true);
+
+      const flag = sessionStorage.getItem("pilot-welcome");
+      if (!flag) return;
+      sessionStorage.removeItem("pilot-welcome");
       const ws = await listWorkspaces();
       setHasWorkspaces(ws.length > 0);
       setWelcomeOpen(true);
     });
-  }, []);
+  }, [router]);
+
+  // Avoid flash of landing while checking session
+  if (!authChecked) return null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -60,6 +71,18 @@ function Landing() {
 
 function PublicNav() {
   const { theme, toggle } = useTheme();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center px-5">
@@ -75,10 +98,18 @@ function PublicNav() {
           <button onClick={toggle} className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <Link to="/login" className="hidden rounded-lg px-3 py-1.5 text-[13.5px] font-medium text-muted-foreground hover:text-foreground sm:inline-flex">Accedi</Link>
-          <Link to="/signup" className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3.5 py-1.5 text-[13.5px] font-medium text-background hover:opacity-90">
-            Inizia gratis <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          {loggedIn ? (
+            <Link to="/app" className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3.5 py-1.5 text-[13.5px] font-medium text-background hover:opacity-90">
+              Apri workspace <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="hidden rounded-lg px-3 py-1.5 text-[13.5px] font-medium text-muted-foreground hover:text-foreground sm:inline-flex">Accedi</Link>
+              <Link to="/signup" className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3.5 py-1.5 text-[13.5px] font-medium text-background hover:opacity-90">
+                Inizia gratis <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
