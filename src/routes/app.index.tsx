@@ -1,3 +1,4 @@
+"use client";
 import { Link, useNavigate } from "@/lib/nextCompat";
 import {
   Target,
@@ -20,6 +21,8 @@ import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/compo
 import { useProject, computeHealth, analyzeBudget, completeTask, formatEuro } from "@/lib/projectStore";
 import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
+import { PlanUtilization } from "@/components/app/PlanUtilization";
+import { FounderBenchmark } from "@/components/app/FounderBenchmark";
 
 export default Dashboard;
 
@@ -407,6 +410,14 @@ function Dashboard() {
               ))}
           </div>
         </Card>
+
+        {/* Plan Utilization + Benchmark */}
+        <div className="col-span-12 lg:col-span-6">
+          <PlanUtilization />
+        </div>
+        <div className="col-span-12 lg:col-span-6">
+          <FounderBenchmark />
+        </div>
       </div>
     </div>
   );

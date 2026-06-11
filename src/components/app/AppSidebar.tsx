@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Lightbulb, Palette, FileText, Coins, Wrench, Map, ListChecks,
   ShieldCheck, Megaphone, Presentation, Banknote, Users, Receipt, Wallet, Files,
   Plug, Sparkles, ShieldAlert, BadgeCheck, LifeBuoy, Settings, ChevronLeft,
+  Compass, Share2,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,10 @@ import { Logo, LogoMark } from "@/components/brand/Logo";
 import { WorkspaceSidebarPanel } from "@/components/app/WorkspaceSidebar";
 
 const sections: { label?: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
-  { items: [{ to: "/app", label: "Dashboard", icon: LayoutDashboard }] },
+  { items: [
+    { to: "/app", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/app/journey", label: "Journey", icon: Compass },
+  ]},
   {
     label: "Build",
     items: [
@@ -55,6 +59,7 @@ const sections: { label?: string; items: { to: string; label: string; icon: Reac
     label: "Account",
     items: [
       { to: "/app/plan", label: "Plan & Usage", icon: BadgeCheck },
+      { to: "/app/referral", label: "Referral", icon: Share2 },
       { to: "/app/support", label: "Support", icon: LifeBuoy },
       { to: "/app/settings", label: "Settings", icon: Settings },
     ],
