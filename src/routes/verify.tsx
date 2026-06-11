@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { startAuthSync } from "@/lib/authSync";
 
 const CORRECT_CODE = "000000"; // "000-000" without dash
@@ -12,7 +12,7 @@ const CORRECT_CODE = "000000"; // "000-000" without dash
 export default function VerifyPage() {
   const router = useRouter();
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
-  const [status, setStatus] = useState<"idle" | "wrong" | "loading" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "wrong" | "loading" | "success" | "needsConfirm">("idle");
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -71,39 +71,35 @@ export default function VerifyPage() {
     setStatus("loading");
 
     try {
-      // Try to get existing session from signUp (email confirm disabled)
+      // Try to get existing session (works if Supabase has email confirm disabled)
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        // If no session yet, try signInWithPassword using stored credentials
         const stored = sessionStorage.getItem("pilot-pending-auth");
-        if (!stored) {
-          setError("Sessione scaduta. Riprova dalla pagina di registrazione.");
-          setStatus("idle");
-          return;
-        }
-        const { email, password } = JSON.parse(stored) as { email: string; password: string };
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          // Email may need confirmation — let user know
-          setError(
-            signInErr.message.includes("Email not confirmed")
-              ? "Controlla la tua email per confermare l'account, poi accedi normalmente."
-              : signInErr.message,
-          );
-          setStatus("idle");
-          return;
+        if (stored) {
+          const { email, password } = JSON.parse(stored) as { email: string; password: string };
+          const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+
+          if (signInErr) {
+            const needsConfirm =
+              signInErr.message.toLowerCase().includes("email not confirmed") ||
+              signInErr.message.toLowerCase().includes("invalid login");
+
+            if (needsConfirm) {
+              // OTP code was correct — let user continue even without a session
+              setStatus("needsConfirm");
+              return;
+            }
+            setError(signInErr.message);
+            setStatus("idle");
+            return;
+          }
         }
       }
 
       sessionStorage.removeItem("pilot-pending-auth");
-
-      // Kick off Supabase→MockUser sync
       startAuthSync();
-
       setStatus("success");
-
-      // Show success for 900ms then redirect + trigger welcome modal
       setTimeout(() => {
         sessionStorage.setItem("pilot-welcome", "1");
         router.push("/");
@@ -141,6 +137,49 @@ export default function VerifyPage() {
               </div>
               <p className="text-[15px] font-medium">Verifica completata!</p>
               <p className="text-[13px] text-muted-foreground">Reindirizzamento in corso…</p>
+            </motion.div>
+          ) : status === "needsConfirm" ? (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/15 text-brand">
+                <CheckCircle2 className="h-9 w-9" />
+              </div>
+              <div className="text-center">
+                <p className="text-[16px] font-semibold">Codice corretto ✓</p>
+                <p className="mt-1.5 max-w-xs text-[13.5px] text-muted-foreground">
+                  Supabase richiede la conferma email prima del primo accesso.
+                  Controlla la tua casella e clicca il link di conferma.
+                </p>
+                <p className="mt-2 text-[12.5px] text-muted-foreground">
+                  Oppure, disabilita <strong>"Confirm email"</strong> in{" "}
+                  <span className="font-medium text-foreground">
+                    Supabase → Authentication → Providers → Email
+                  </span>
+                  .
+                </p>
+              </div>
+              <div className="flex w-full flex-col gap-2">
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem("pilot-welcome", "1");
+                    router.push("/");
+                  }}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90"
+                >
+                  Continua alla home <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="w-full py-2.5 text-[13px] text-muted-foreground hover:text-foreground"
+                >
+                  Vai al login (dopo aver confermato l'email)
+                </button>
+              </div>
             </motion.div>
           ) : (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
