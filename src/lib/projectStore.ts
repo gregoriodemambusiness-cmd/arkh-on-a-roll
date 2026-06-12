@@ -61,6 +61,26 @@ export type Onboarding = {
   goal: string;
 };
 
+export type Sentiment = "positivo" | "neutro" | "negativo";
+
+export type Interview = {
+  id: string;
+  name: string;
+  date: string;
+  insight: string;
+  sentiment: Sentiment;
+};
+
+export type Transaction = {
+  id: string;
+  type: "entrata" | "uscita";
+  amount: number;
+  category: string;
+  description: string;
+  date: string;
+  recurring?: boolean;
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -71,11 +91,16 @@ export type Project = {
   blueprint: Blueprint;
   mvpEssential: string[];
   mvpDeferred: string[];
+  mvpCompleted?: string[];
   mvpEstimate: number; // €
   budgetAvailable: number; // €
   roadmap: RoadmapPhase[];
   tasks: Task[];
   founderAlerts: FounderAlert[];
+  validation?: { interviews: Interview[]; waitlist: string[] };
+  finance?: { transactions: Transaction[] };
+  businessModel?: { arpu?: number; cac?: number; churn?: number };
+  brand?: { selectedName?: string; colors?: string[] };
 };
 
 // ─────────────── persistence ───────────────
