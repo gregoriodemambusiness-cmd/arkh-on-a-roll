@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Loader2, AlertTriangle } from "lucide-react";
-import { addClientToCRM } from "@/lib/notion";
+import { submitCRMSignup } from "@/lib/notion.functions";
 import NextLink from "next/link";
 
 export default function SignupPage() {
@@ -46,12 +46,12 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
         );
 
         // Fire-and-forget CRM
-        addClientToCRM({
+        submitCRMSignup({
           name: name || email.split("@")[0],
           email,
           plan: "free",
           healthScore: 50,
-        }).catch((err) => console.warn("[notion] addClientToCRM:", err));
+        }).catch((err) => console.warn("[notion] submitCRMSignup:", err));
 
         router.push("/verify");
       } else {
@@ -63,9 +63,9 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
         const { startAuthSync } = await import("@/lib/authSync");
         startAuthSync();
 
-        // Set welcome flag if first login (no workspaces yet — checked on landing)
         sessionStorage.setItem("pilot-welcome", "1");
-        router.push("/");
+        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+        router.push(dest);
       }
     } catch (e: unknown) {
       setError((e as { message?: string })?.message || "Errore di autenticazione.");

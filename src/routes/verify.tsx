@@ -102,7 +102,8 @@ export default function VerifyPage() {
       setStatus("success");
       setTimeout(() => {
         sessionStorage.setItem("pilot-welcome", "1");
-        router.push("/");
+        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+        router.push(dest);
       }, 900);
     } catch (e: unknown) {
       setError((e as Error)?.message ?? "Errore di autenticazione.");
@@ -167,11 +168,12 @@ export default function VerifyPage() {
                 <button
                   onClick={() => {
                     sessionStorage.setItem("pilot-welcome", "1");
-                    router.push("/");
+                    const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+                    router.push(dest);
                   }}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90"
                 >
-                  Continua alla home <ArrowRight className="h-4 w-4" />
+                  Continua <ArrowRight className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => router.push("/login")}
