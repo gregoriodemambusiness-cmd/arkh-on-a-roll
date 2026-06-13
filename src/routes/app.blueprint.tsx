@@ -1,9 +1,10 @@
-import { FileText, Download, Check } from "lucide-react";
+import { FileText, Download, Check, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardHeader, PageHeader, Button, Pill } from "@/components/app/ui";
 import { useProject, updateBlueprint, type Blueprint } from "@/lib/projectStore";
-
-
+import { useUser } from "@/lib/mockAuth";
+import { askCoFounder } from "@/lib/claude.functions";
+import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
 
 const FIELDS: { key: keyof Blueprint; label: string }[] = [
   { key: "mission", label: "Mission" },
@@ -21,8 +22,11 @@ const FIELDS: { key: keyof Blueprint; label: string }[] = [
 
 function BlueprintPage() {
   const proj = useProject();
+  const user = useUser();
   const [local, setLocal] = useState<Blueprint | null>(null);
   const [saved, setSaved] = useState(false);
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     if (proj && !local) setLocal(proj.blueprint);
@@ -38,6 +42,31 @@ function BlueprintPage() {
     setTimeout(() => setSaved(false), 1500);
   };
 
+  const runAI = async () => {
+    const plan = user?.plan ?? "free";
+    const usage = checkUsageLimit(plan);
+    if (!usage.allowed) { setAiResult("Limite chiamate AI raggiunto. Upgrada il piano."); return; }
+
+    setAiLoading(true);
+    setAiResult(null);
+    incrementUsage();
+    const result = await askCoFounder(
+      "Analizza questo blueprint e dai 3 suggerimenti specifici per migliorare value proposition e target. Sii diretto, no markdown, max 200 parole.",
+      [
+        `Progetto: ${proj.name}`,
+        `Problema: ${local.problem}`,
+        `Soluzione: ${local.solution}`,
+        `Target: ${local.target}`,
+        `Value Proposition: ${local.valueProp}`,
+        `Business Model: ${local.businessModel}`,
+        `Mission: ${local.mission}`,
+        `Vision: ${local.vision}`,
+      ].join("\n"),
+    );
+    setAiLoading(false);
+    setAiResult(result.ok ? result.text : `Errore: ${result.error}`);
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
@@ -46,11 +75,29 @@ function BlueprintPage() {
         action={
           <div className="flex gap-2">
             {saved && <Pill tone="ok"><Check className="h-3 w-3" /> Salvato</Pill>}
+            <button
+              onClick={runAI}
+              disabled={aiLoading}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/10 px-3.5 py-2 text-[13px] font-medium text-brand hover:bg-brand/20 disabled:opacity-60"
+            >
+              {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {aiLoading ? "Analisi…" : "Analizza con AI"}
+            </button>
             <Button variant="secondary" onClick={save}>Salva modifiche</Button>
             <Button onClick={() => window.print()}><Download className="h-3.5 w-3.5" /> Esporta</Button>
           </div>
         }
       />
+
+      {aiResult && (
+        <div className="rounded-xl border border-brand/30 bg-brand/5 p-4 text-[13.5px] leading-relaxed">
+          <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-brand">
+            <Sparkles className="h-3.5 w-3.5" /> Suggerimenti AI per il Blueprint
+          </div>
+          {aiResult}
+        </div>
+      )}
+
       <Card>
         <CardHeader title="Documento" icon={FileText} subtitle={`${FIELDS.length} sezioni`} />
         <div className="divide-y divide-border">

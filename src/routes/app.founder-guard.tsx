@@ -1,12 +1,18 @@
-import { ShieldAlert, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, AlertTriangle, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
-import { useProject, resolveAlert } from "@/lib/projectStore";
+import { useProject, resolveAlert, computeHealth, analyzeBudget } from "@/lib/projectStore";
+import { useUser } from "@/lib/mockAuth";
+import { askCoFounder } from "@/lib/claude.functions";
+import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
 import { motion, AnimatePresence } from "framer-motion";
-
-
 
 function FounderGuard() {
   const proj = useProject();
+  const user = useUser();
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
   if (!proj) {
     return <div className="mx-auto max-w-3xl py-20 text-center text-muted-foreground">Nessun progetto attivo.</div>;
   }
@@ -18,6 +24,32 @@ function FounderGuard() {
   const tone = score >= 50 ? "warn" : score >= 25 ? "brand" : "ok";
   const label = score >= 50 ? "Alto" : score >= 25 ? "Medio" : "Basso";
 
+  const runAI = async () => {
+    const plan = user?.plan ?? "free";
+    const usage = checkUsageLimit(plan);
+    if (!usage.allowed) { setAiResult("Limite chiamate AI raggiunto. Upgrada il piano."); return; }
+
+    setAiLoading(true);
+    setAiResult(null);
+    const { score: hs } = computeHealth(proj);
+    const b = analyzeBudget(proj);
+    incrementUsage();
+    const result = await askCoFounder(
+      "Analizza questo progetto e identifica i 3 rischi più critici adesso. Elenca solo i 3 rischi più urgenti con una soluzione specifica per ognuno. Testo plain, no markdown, max 200 parole.",
+      [
+        `Nome: ${proj.name}`,
+        `Fase: ${proj.onboarding.stage}`,
+        `Budget: ${b.available}€, rischio: ${b.risk}`,
+        `Health Score: ${hs}/100`,
+        `Task aperti: ${proj.tasks.filter((t) => t.status !== "Completato").length}`,
+        `Target: ${proj.blueprint?.target}`,
+        `Alert attivi: ${open.map((a) => `${a.title} (${a.severity})`).join(", ")}`,
+      ].join("\n"),
+    );
+    setAiLoading(false);
+    setAiResult(result.ok ? result.text : `Errore: ${result.error}`);
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader title="Founder Guard" subtitle="Errori da evitare. Protezione attiva sulle decisioni critiche." />
@@ -26,6 +58,24 @@ function FounderGuard() {
         <CardHeader title="Risk Score" icon={ShieldAlert} action={<Pill tone={tone}>{score} / 100 — {label}</Pill>} />
         <ProgressBar value={score} tone={tone === "ok" ? "ok" : tone === "warn" ? "warn" : "brand"} />
         <p className="mt-3 text-[13px] text-muted-foreground">Più basso è meglio. Risolvi gli alert per ridurre il rischio.</p>
+      </Card>
+
+      {/* AI Analysis */}
+      <Card>
+        <CardHeader title="Analisi AI" icon={Sparkles} subtitle="Identificazione rischi critici con Claude" />
+        <button
+          onClick={runAI}
+          disabled={aiLoading}
+          className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-[13.5px] font-medium text-white hover:opacity-90 disabled:opacity-60"
+        >
+          {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {aiLoading ? "Analisi in corso…" : "Analizza con AI"}
+        </button>
+        {aiResult && (
+          <div className="mt-4 rounded-xl border border-brand/30 bg-brand/5 p-4 text-[13.5px] leading-relaxed">
+            {aiResult}
+          </div>
+        )}
       </Card>
 
       <Card>

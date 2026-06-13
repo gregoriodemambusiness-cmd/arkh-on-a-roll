@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
+export function Card({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-card p-5 shadow-card", className)}>
+    <div {...rest} className={cn("rounded-2xl border border-border bg-card p-5 shadow-card", className)}>
       {children}
     </div>
   );

@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useUser } from "@/lib/mockAuth";
+import { AppTutorial } from "@/components/app/AppTutorial";
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
 import { useProject, computeHealth, analyzeBudget, completeTask, formatEuro } from "@/lib/projectStore";
 import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
@@ -112,6 +113,7 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
+      <AppTutorial />
       <PageHeader
         title={`Buongiorno, ${user?.name?.split(" ")[0] || "Founder"}.`}
         subtitle={`Progetto: ${proj.name} — ${proj.onboarding.stage || "Validazione"}`}
@@ -177,7 +179,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-12 gap-4">
         {/* Today Focus */}
-        <Card className="col-span-12 lg:col-span-7">
+        <Card className="col-span-12 lg:col-span-7" data-tutorial="today-focus">
           <CardHeader
             title="Today Focus"
             subtitle={`${todo.length} task prioritari per oggi`}
@@ -220,7 +222,7 @@ function Dashboard() {
         </Card>
 
         {/* Startup Health */}
-        <Card className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Card className="col-span-12 sm:col-span-6 lg:col-span-5" data-tutorial="health-score">
           <CardHeader
             title="Startup Health Score"
             icon={BarChart3}
@@ -282,7 +284,7 @@ function Dashboard() {
         </Card>
 
         {/* Budget Guard */}
-        <Card className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Card className="col-span-12 sm:col-span-6 lg:col-span-5" data-tutorial="budget-guard">
           <CardHeader
             title="Budget Guard"
             icon={Wallet}

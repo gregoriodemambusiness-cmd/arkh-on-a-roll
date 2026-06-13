@@ -1,11 +1,17 @@
-import { Wallet, AlertTriangle, TrendingDown, CheckCircle2 } from "lucide-react";
+import { Wallet, AlertTriangle, TrendingDown, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Card, CardHeader, PageHeader, Pill, ProgressBar } from "@/components/app/ui";
 import { useProject, analyzeBudget, formatEuro } from "@/lib/projectStore";
-
-
+import { useUser } from "@/lib/mockAuth";
+import { askCoFounder } from "@/lib/claude.functions";
+import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
 
 function BudgetGuard() {
   const proj = useProject();
+  const user = useUser();
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
   if (!proj) {
     return <div className="mx-auto max-w-3xl py-20 text-center text-muted-foreground">Nessun progetto attivo.</div>;
   }
@@ -14,6 +20,31 @@ function BudgetGuard() {
   const tone = b.risk === "alto" ? "warn" : b.risk === "medio" ? "brand" : "ok";
   const ToneIcon = b.risk === "basso" ? CheckCircle2 : AlertTriangle;
   const pct = Math.min(100, Math.round((b.available / Math.max(1, b.estimated)) * 100));
+
+  const runAI = async () => {
+    const plan = user?.plan ?? "free";
+    const usage = checkUsageLimit(plan);
+    if (!usage.allowed) { setAiResult("Limite chiamate AI raggiunto. Upgrada il piano."); return; }
+
+    setAiLoading(true);
+    setAiResult(null);
+    incrementUsage();
+    const result = await askCoFounder(
+      "Dimmi se il budget è sufficiente, quali feature tagliare se non lo è, e come ridurre i costi del 30%. Testo plain, no markdown, max 200 parole.",
+      [
+        `Budget disponibile: ${formatEuro(b.available)}`,
+        `Costo MVP stimato: ${formatEuro(b.estimated)}`,
+        `Differenza: ${formatEuro(b.delta)}`,
+        `Rischio: ${b.risk}`,
+        `Feature MVP essenziali: ${proj.mvpEssential.join(", ")}`,
+        `Feature MVP da rimandare: ${proj.mvpDeferred.join(", ")}`,
+        `Fase: ${proj.onboarding.stage}`,
+        `Tipo progetto: ${proj.onboarding.type}`,
+      ].join("\n"),
+    );
+    setAiLoading(false);
+    setAiResult(result.ok ? result.text : `Errore: ${result.error}`);
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -52,6 +83,24 @@ function BudgetGuard() {
         <div className={`rounded-xl border p-4 text-[14px] leading-relaxed ${b.risk === "alto" ? "border-warning/30 bg-warning/10 text-warning" : b.risk === "medio" ? "border-brand/30 bg-brand/5" : "border-success/30 bg-success/10 text-success"}`}>
           {b.recommendation}
         </div>
+      </Card>
+
+      {/* AI Budget Analysis */}
+      <Card>
+        <CardHeader title="Ottimizzazione AI" icon={Sparkles} subtitle="Analisi e riduzione costi con Claude" />
+        <button
+          onClick={runAI}
+          disabled={aiLoading}
+          className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-[13.5px] font-medium text-white hover:opacity-90 disabled:opacity-60"
+        >
+          {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {aiLoading ? "Analisi in corso…" : "Ottimizza budget con AI"}
+        </button>
+        {aiResult && (
+          <div className="mt-4 rounded-xl border border-brand/30 bg-brand/5 p-4 text-[13.5px] leading-relaxed">
+            {aiResult}
+          </div>
+        )}
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">

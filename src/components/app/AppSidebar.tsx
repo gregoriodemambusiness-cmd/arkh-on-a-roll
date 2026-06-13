@@ -154,6 +154,11 @@ export function AppSidebar() {
                   <NextLink
                     key={it.to}
                     href={it.to}
+                    data-tutorial={
+                      it.to === "/app/co-founder" ? "cofounder-ai" :
+                      it.to === "/app/journey" ? "journey" :
+                      undefined
+                    }
                     className={cn(
                       "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium transition-colors",
                       active
