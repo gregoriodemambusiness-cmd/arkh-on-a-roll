@@ -1,31 +1,27 @@
 import { cn } from "@/lib/utils";
 
-type Props = {
-  className?: string;
-  size?: number;
-  withWordmark?: boolean;
-  monochrome?: boolean;
-};
+type MarkProps = { className?: string; size?: number };
+type LogoProps = { className?: string; size?: number; withWordmark?: boolean };
 
-export function LogoMark({ className, size = 28 }: { className?: string; size?: number }) {
+export function LogoMark({ className, size = 28 }: MarkProps) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 32 32"
-      fill="currentColor"
-      className={cn("shrink-0 text-foreground", className)}
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("shrink-0 text-black dark:text-white", className)}
       aria-hidden
     >
-      <path d="M16 3 L28 27 H22.5 L20.2 21.5 H11.8 L9.5 27 H4 L16 3Z M13.6 17 H18.4 L16 11.2 L13.6 17Z" />
-      <circle cx="16" cy="6.5" r="1.6" />
+      {/* Solid upward triangle — no inner paths, no cutouts */}
+      <polygon points="16,3 30,27 2,27" fill="currentColor" />
     </svg>
   );
 }
 
-export function Logo({ className, size = 28, withWordmark = true }: Props) {
+export function Logo({ className, size = 28, withWordmark = true }: LogoProps) {
   return (
-    <div className={cn("inline-flex items-center gap-2 text-foreground dark:text-foreground", className)}>
+    <div className={cn("inline-flex items-center gap-2 text-black dark:text-white", className)}>
       <LogoMark size={size} />
       {withWordmark && (
         <span className="font-display text-[15px] font-semibold tracking-tight">
