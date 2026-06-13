@@ -6,7 +6,7 @@ import {
   Receipt, CreditCard, Calendar, TrendingUp, Activity,
 } from "lucide-react";
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
-import { PLAN_BY_ID, PLAN_RANK, PLANS, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
+import { PLAN_BY_ID, PLAN_RANK, PLANS, suggestPlan, type PlanId, type PaidPlanId, type BillingPeriod } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 import { useProject } from "@/lib/projectStore";
 
@@ -18,6 +18,7 @@ function Plan() {
   const user = useUser();
   const proj = useProject();
   const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
+  const [billing, setBilling] = useState<BillingPeriod>("monthly");
 
   const plan = (user?.plan ?? "free") as PlanId;
   const meta = PLAN_BY_ID[plan];
@@ -154,53 +155,94 @@ function Plan() {
       )}
 
       {/* Change plan */}
-      <div id="change-plan" className="grid gap-4 md:grid-cols-4">
-        {PLANS.filter((p) => p.id !== "enterprise").map((p) => {
-          const isCurrent = p.id === plan;
-          const isPaid = p.id === "starter" || p.id === "pro" || p.id === "founder";
-          return (
-            <div
-              key={p.id}
-              className={`relative flex flex-col rounded-2xl border bg-card p-4 ${p.featured ? "border-foreground shadow-elegant" : "border-border"} ${isCurrent ? "ring-1 ring-foreground/20" : ""}`}
+      <div id="change-plan">
+        {/* Billing toggle */}
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-[13px] font-medium">Periodo:</span>
+          <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`rounded-full px-3.5 py-1 text-[12.5px] font-medium transition-all ${
+                billing === "monthly" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              {p.featured && (
-                <div className="absolute -top-3 left-4 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-medium text-background">Più scelto</div>
-              )}
-              <div className="text-[12.5px] font-medium text-muted-foreground">{p.name}</div>
-              <div className="mt-1 flex items-end gap-1">
-                <span className="font-display text-2xl font-semibold">{p.priceLabel}</span>
-                <span className="mb-1 text-[11.5px] text-muted-foreground">{p.per}</span>
+              Mensile
+            </button>
+            <button
+              onClick={() => setBilling("annual")}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-[12.5px] font-medium transition-all ${
+                billing === "annual" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Annuale
+              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">−32%</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          {PLANS.filter((p) => p.id !== "enterprise").map((p) => {
+            const isCurrent = p.id === plan;
+            const isPaid = p.id === "starter" || p.id === "pro" || p.id === "founder";
+            const isAnnual = billing === "annual" && isPaid;
+            const displayPrice = isAnnual ? (p.priceAnnualMonthly ?? p.price) : p.price;
+            const savings = isAnnual ? p.savingsAnnual : undefined;
+            return (
+              <div
+                key={p.id}
+                className={`relative flex flex-col rounded-2xl border bg-card p-4 ${p.featured ? "border-foreground shadow-elegant" : "border-border"} ${isCurrent ? "ring-1 ring-foreground/20" : ""}`}
+              >
+                {p.featured && (
+                  <div className="absolute -top-3 left-4 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-medium text-background">Più scelto</div>
+                )}
+                <div className="flex items-start justify-between gap-1">
+                  <div className="text-[12.5px] font-medium text-muted-foreground">{p.name}</div>
+                  {savings && (
+                    <span className="shrink-0 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">
+                      −€{savings}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex items-end gap-1">
+                  <span className="font-display text-2xl font-semibold">
+                    {p.price === 0 ? "0€" : `${displayPrice}€`}
+                  </span>
+                  <span className="mb-1 text-[11.5px] text-muted-foreground">/ mese</span>
+                </div>
+                {isAnnual && p.priceAnnual && (
+                  <p className="text-[10.5px] text-muted-foreground">fatturato €{p.priceAnnual}/anno</p>
+                )}
+                <p className="mt-1 line-clamp-2 text-[12px] text-muted-foreground">{p.desc}</p>
+                <ul className="mt-3 flex-1 space-y-1">
+                  {p.features.slice(0, 4).map((f) => (
+                    <li key={f} className="text-[12px] text-muted-foreground">• {f}</li>
+                  ))}
+                </ul>
+                <div className="mt-4">
+                  {isCurrent ? (
+                    <div className="inline-flex w-full items-center justify-center rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] text-muted-foreground">
+                      Piano attuale
+                    </div>
+                  ) : p.id === "free" ? (
+                    <Button
+                      variant="secondary"
+                      className="w-full"
+                      onClick={() => {
+                        if (window.confirm("Tornare al Free Trial (demo)?")) setPlan("free");
+                      }}
+                    >
+                      Torna al Free
+                    </Button>
+                  ) : isPaid ? (
+                    <Button className="w-full" onClick={() => setConfirm(p.id as PaidPlanId)}>
+                      {p.cta}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              <p className="mt-1 line-clamp-2 text-[12px] text-muted-foreground">{p.desc}</p>
-              <ul className="mt-3 flex-1 space-y-1">
-                {p.features.slice(0, 4).map((f) => (
-                  <li key={f} className="text-[12px] text-muted-foreground">• {f}</li>
-                ))}
-              </ul>
-              <div className="mt-4">
-                {isCurrent ? (
-                  <div className="inline-flex w-full items-center justify-center rounded-lg border border-border bg-surface px-3 py-1.5 text-[12px] text-muted-foreground">
-                    Piano attuale
-                  </div>
-                ) : p.id === "free" ? (
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => {
-                      if (window.confirm("Tornare al Free Trial (demo)?")) setPlan("free");
-                    }}
-                  >
-                    Torna al Free
-                  </Button>
-                ) : isPaid ? (
-                  <Button className="w-full" onClick={() => setConfirm(p.id as PaidPlanId)}>
-                    {p.cta}
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Payment method + invoices */}
@@ -256,7 +298,7 @@ function Plan() {
         </div>
       </Card>
 
-      <PlanConfirmModal plan={confirm} onClose={() => setConfirm(null)} />
+      <PlanConfirmModal plan={confirm} billing={billing} onClose={() => setConfirm(null)} />
     </div>
   );
 }

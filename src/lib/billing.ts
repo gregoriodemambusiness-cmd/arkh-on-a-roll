@@ -6,12 +6,19 @@ export type PlanId = "free" | "starter" | "pro" | "founder" | "enterprise";
 
 export type PaidPlanId = Extract<PlanId, "starter" | "pro" | "founder">;
 
+export type BillingPeriod = "monthly" | "annual";
+
 export type Plan = {
   id: PlanId;
   name: string;
   price: number; // EUR/month (0 for free; -1 = custom)
   priceLabel: string;
   per: string;
+  // Annual billing
+  priceMonthly?: number;       // same as price, explicit
+  priceAnnual?: number;        // total billed per year
+  priceAnnualMonthly?: number; // equivalent monthly cost when billed annually
+  savingsAnnual?: number;      // EUR saved vs 12× monthly
   desc: string;
   features: string[];
   cta: string;
@@ -25,7 +32,7 @@ export const PLANS: Plan[] = [
     name: "Free Trial",
     price: 0,
     priceLabel: "0€",
-    per: "/ 30 giorni",
+    per: "/ 14 giorni",
     desc: "Per chi ha un'idea e vuole capire se vale la pena costruirla.",
     features: [
       "1 progetto",
@@ -45,6 +52,10 @@ export const PLANS: Plan[] = [
     price: 23,
     priceLabel: "23€",
     per: "/mese",
+    priceMonthly: 23,
+    priceAnnual: 199,
+    priceAnnualMonthly: Math.round(199 / 12),
+    savingsAnnual: 276 - 199,
     desc: "Per chi vuole organizzare seriamente la propria idea.",
     features: [
       "1 progetto",
@@ -65,6 +76,10 @@ export const PLANS: Plan[] = [
     price: 49,
     priceLabel: "49€",
     per: "/mese",
+    priceMonthly: 49,
+    priceAnnual: 399,
+    priceAnnualMonthly: Math.round(399 / 12),
+    savingsAnnual: 588 - 399,
     desc: "Per chi vuole costruire, validare e preparare il lancio.",
     featured: true,
     features: [
@@ -90,6 +105,10 @@ export const PLANS: Plan[] = [
     price: 99,
     priceLabel: "99€",
     per: "/mese",
+    priceMonthly: 99,
+    priceAnnual: 899,
+    priceAnnualMonthly: Math.round(899 / 12),
+    savingsAnnual: 1188 - 899,
     desc: "Per chi vuole portare il progetto a un livello serio.",
     features: [
       "3 progetti",
@@ -155,4 +174,14 @@ export function suggestPlan(current: PlanId): PaidPlanId {
 // EUR price -> Stripe smallest unit (cents)
 export function toStripeAmount(eur: number): number {
   return Math.round(eur * 100);
+}
+
+export function getPlanPrice(plan: Plan, billing: BillingPeriod): number {
+  if (billing === "annual" && plan.priceAnnual) return plan.priceAnnual;
+  return plan.price;
+}
+
+export function getPlanPriceLabel(plan: Plan, billing: BillingPeriod): string {
+  if (billing === "annual" && plan.priceAnnualMonthly) return `${plan.priceAnnualMonthly}€`;
+  return plan.priceLabel;
 }

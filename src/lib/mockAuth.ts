@@ -41,7 +41,7 @@ export function getUser(): MockUser | null {
     const u = JSON.parse(raw) as MockUser;
     // Backfill trial end for legacy records on free plan.
     if (u.plan === "free" && !u.trialEndsAt) {
-      u.trialEndsAt = (u.planSince ?? Date.now()) + 30 * 24 * 60 * 60 * 1000;
+      u.trialEndsAt = (u.planSince ?? Date.now()) + 14 * 24 * 60 * 60 * 1000;
     }
     return u;
   } catch {
@@ -68,7 +68,7 @@ export function setPlan(plan: PlanId, payment?: Omit<PaymentRecord, "at" | "plan
     plan,
     planSince: Date.now(),
     trialEndsAt:
-      plan === "free" ? Date.now() + 30 * 24 * 60 * 60 * 1000 : undefined,
+      plan === "free" ? Date.now() + 14 * 24 * 60 * 60 * 1000 : undefined,
     paymentHistory: payment
       ? [...(u.paymentHistory || []), { ...payment, plan, at: Date.now() }]
       : u.paymentHistory,

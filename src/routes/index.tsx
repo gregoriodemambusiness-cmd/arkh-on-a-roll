@@ -12,7 +12,7 @@ import {
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun } from "lucide-react";
-import { PLANS, type Plan, type PaidPlanId } from "@/lib/billing";
+import { PLANS, type Plan, type PaidPlanId, type BillingPeriod } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
 import { WelcomeModal } from "@/components/app/WelcomeModal";
 import { listWorkspaces } from "@/lib/workspaces";
@@ -149,7 +149,7 @@ function Hero() {
               Guarda come funziona
             </a>
           </div>
-          <p className="mt-4 text-[12px] text-muted-foreground">30 giorni gratis · Nessuna carta richiesta</p>
+          <p className="mt-4 text-[12px] text-muted-foreground">14 giorni gratis · Nessuna carta richiesta</p>
 
           {/* Credibility band */}
           <motion.div
@@ -757,10 +757,12 @@ function DotGrid() {
 function PricingCard({
   plan,
   index,
+  billing,
   onSelect,
 }: {
   plan: Plan;
   index: number;
+  billing: BillingPeriod;
   onSelect?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -776,17 +778,48 @@ function PricingCard({
 
   const isFree = plan.id === "free";
   const isPaid = ["starter", "pro", "founder"].includes(plan.id);
+  const isAnnual = billing === "annual" && isPaid;
+  const displayPrice = isAnnual ? (plan.priceAnnualMonthly ?? plan.price) : plan.price;
+  const savings = isAnnual ? plan.savingsAnnual : undefined;
 
   // Card body (no badge — badge lives outside overflow-hidden layers for Pro)
   const cardInner = (
     <div className="relative flex h-full flex-col rounded-2xl bg-card p-5">
-      <div className="text-[13px] font-medium text-muted-foreground">{plan.name}</div>
-      <div className="mt-2 flex items-end gap-1">
-        <span className="font-display text-3xl font-semibold">
-          {plan.price === 0 ? "0€" : <AnimatedCounter target={plan.price} suffix="€" />}
-        </span>
-        <span className="mb-1 text-[12px] text-muted-foreground">{plan.per}</span>
+      <div className="flex items-start justify-between">
+        <div className="text-[13px] font-medium text-muted-foreground">{plan.name}</div>
+        {savings && (
+          <motion.span
+            key={`savings-${billing}`}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-600"
+          >
+            Risparmia €{savings}
+          </motion.span>
+        )}
       </div>
+      <div className="mt-2 flex items-end gap-1">
+        <motion.span
+          key={`price-${billing}-${plan.id}`}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="font-display text-3xl font-semibold"
+        >
+          {plan.price === 0 ? "0€" : `${displayPrice}€`}
+        </motion.span>
+        <span className="mb-1 text-[12px] text-muted-foreground">/ mese</span>
+      </div>
+      {isAnnual && plan.priceAnnual && (
+        <motion.p
+          key="annual-label"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-[11.5px] text-muted-foreground"
+        >
+          fatturato €{plan.priceAnnual}/anno
+        </motion.p>
+      )}
       <p className="mt-1 text-[13px] text-muted-foreground">{plan.desc}</p>
       <ul className="mt-4 flex-1 space-y-2">
         {plan.features.slice(0, 7).map((f, fi) => (
@@ -886,6 +919,7 @@ function PricingCard({
 
 function Pricing() {
   const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
+  const [billing, setBilling] = useState<BillingPeriod>("monthly");
   const paid = PLANS.filter((p) => p.id !== "enterprise") as Plan[];
   const separatorRef = useRef<HTMLDivElement>(null);
   const separatorInView = useInView(separatorRef as React.RefObject<Element>, { once: true });
@@ -928,6 +962,35 @@ function Pricing() {
             Tutti i piani includono il percorso completo. La differenza è profondità,
             automazione, collaborazione e supporto.
           </p>
+
+          {/* Billing toggle */}
+          <div className="mt-6 flex items-center justify-center">
+            <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1">
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-all ${
+                  billing === "monthly"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Mensile
+              </button>
+              <button
+                onClick={() => setBilling("annual")}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-medium transition-all ${
+                  billing === "annual"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Annuale
+                <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  −32%
+                </span>
+              </button>
+            </div>
+          </div>
         </motion.div>
 
         <div className="grid gap-4 md:grid-cols-4" style={{ perspective: "1200px" }}>
@@ -936,6 +999,7 @@ function Pricing() {
               key={p.id}
               plan={p}
               index={i}
+              billing={billing}
               onSelect={
                 ["starter", "pro", "founder"].includes(p.id)
                   ? () => setConfirm(p.id as PaidPlanId)
@@ -1242,7 +1306,7 @@ function Pricing() {
         </div>
       </div>
 
-      <PlanConfirmModal plan={confirm} onClose={() => setConfirm(null)} />
+      <PlanConfirmModal plan={confirm} billing={billing} onClose={() => setConfirm(null)} />
     </section>
   );
 }

@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Loader2 } from "lucide-react";
+import { submitStudioLead } from "@/lib/notion.functions";
 
 export default StudioPage;
 
@@ -203,14 +204,37 @@ const FORM_KEY = "pilot-studio-requests";
 
 function RequestForm() {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     nome: "", cognome: "", email: "", azienda: "", settore: "", ruolo: "",
     processo: "", tempo: "", persone: "", budget: "", urgenza: "Media", messaggio: "",
   });
-  const set = (k: string) => (e: any) => setForm({ ...form, [k]: e.target.value });
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const result = await submitStudioLead({
+      contact: `${form.nome} ${form.cognome}`.trim(),
+      email: form.email,
+      company: form.azienda,
+      sector: form.settore,
+      role: form.ruolo,
+      process: form.processo,
+      timeLost: form.tempo,
+      teamSize: form.persone,
+      budget: form.budget,
+      urgency: form.urgenza,
+      message: form.messaggio,
+    });
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
     try {
       const prev = JSON.parse(localStorage.getItem(FORM_KEY) || "[]");
       prev.push({ ...form, at: Date.now() });
@@ -250,8 +274,9 @@ function RequestForm() {
               </div>
               <Select label="Urgenza" value={form.urgenza} onChange={set("urgenza")} options={["Bassa", "Media", "Alta"]} />
               <Textarea label="Messaggio aggiuntivo" rows={3} value={form.messaggio} onChange={set("messaggio")} />
-              <button type="submit" className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90">
-                Invia richiesta <ArrowRight className="h-4 w-4" />
+              {error && <p className="text-[13px] text-destructive">{error}</p>}
+              <button type="submit" disabled={loading} className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90 disabled:opacity-60">
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Invio in corso…</> : <>Invia richiesta <ArrowRight className="h-4 w-4" /></>}
               </button>
             </form>
           </>

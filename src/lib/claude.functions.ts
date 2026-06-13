@@ -14,9 +14,8 @@ export async function askCoFounder(
 ): Promise<ClaudeResult> {
   try {
     const msg = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 400,
-      thinking: { type: "adaptive" },
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
       system: `Sei il Co-founder AI di Pilot. Conosci tutto il progetto dell'utente. Sei diretto, pratico e orientato all'azione. Non dare risposte generiche. Ogni risposta deve terminare con una singola azione concreta da fare adesso. Rispondi sempre in italiano. Massimo 150 parole per risposta.
 
 Dati del progetto:
@@ -31,17 +30,17 @@ ${projectContext}`,
 
     return { ok: true, text };
   } catch (err) {
-    console.error("[claude] askCoFounder:", err);
-    return { ok: false, error: "Errore nella risposta AI. Riprova." };
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[claude] askCoFounder error:", msg, err);
+    return { ok: false, error: `Errore AI: ${msg}` };
   }
 }
 
 export async function generateProjectFromOnboarding(prompt: string): Promise<ClaudeResult> {
   try {
     const msg = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 1200,
-      thinking: { type: "adaptive" },
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
       system: `Sei un esperto di startup. Genera un JSON strutturato per un progetto startup basandoti sui dati forniti.
 Rispondi SOLO con JSON valido, nessun testo aggiuntivo, nessun markdown.
 Schema JSON richiesto:
@@ -70,7 +69,8 @@ Schema JSON richiesto:
 
     return { ok: true, text };
   } catch (err) {
-    console.error("[claude] generateProject:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[claude] generateProject error:", msg, err);
     return { ok: false, error: "Generazione AI non disponibile." };
   }
 }

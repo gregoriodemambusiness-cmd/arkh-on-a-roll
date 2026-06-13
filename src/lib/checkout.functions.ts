@@ -17,11 +17,15 @@ export async function createCheckoutSession({
   origin,
   userId,
   email,
+  billing = "monthly",
+  amount,
 }: {
   plan: string;
   origin: string;
   userId?: string;
   email?: string;
+  billing?: "monthly" | "annual";
+  amount?: number; // EUR total (overrides PAID_PLANS default)
 }): Promise<CheckoutResult> {
   const secret = process.env.STRIPE_SECRET_KEY_TEST;
   if (!secret) {
@@ -43,15 +47,21 @@ export async function createCheckoutSession({
   const planData = PAID_PLANS[plan as PaidPlan];
   if (!planData) return { ok: false, error: "Piano non valido." };
 
+  const isAnnual = billing === "annual";
+  const unitAmount = amount ? Math.round(amount * 100) : planData.amount;
+  const productName = `${planData.name}${isAnnual ? " (Annuale)" : ""}`;
+  const interval = isAnnual ? "year" : "month";
+
   const params = new URLSearchParams();
   params.set("mode", "subscription");
-  params.set("success_url", `${origin}/payment-success?plan=${plan}&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("success_url", `${origin}/payment-success?plan=${plan}&billing=${billing}&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${origin}/payment-cancel?plan=${plan}`);
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "eur");
-  params.set("line_items[0][price_data][product_data][name]", planData.name);
-  params.set("line_items[0][price_data][unit_amount]", String(planData.amount));
-  params.set("line_items[0][price_data][recurring][interval]", "month");
+  params.set("line_items[0][price_data][product_data][name]", productName);
+  params.set("line_items[0][price_data][unit_amount]", String(unitAmount));
+  params.set("line_items[0][price_data][recurring][interval]", interval);
+  params.set("metadata[billing]", billing);
   if (email) params.set("customer_email", email);
   if (userId) {
     params.set("client_reference_id", userId);

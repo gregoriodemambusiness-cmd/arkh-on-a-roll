@@ -106,7 +106,7 @@ const PLAN_CARDS = [
     id: "free",
     name: "Free Trial",
     price: "€0",
-    period: "30 giorni",
+    period: "14 giorni",
     desc: "Esplora Pilot senza impegno.",
     features: ["1 progetto", "Idea Lab", "Blueprint base", "3 task attivi"],
     highlight: false,
@@ -282,7 +282,7 @@ Settore: SaaS/Tech. Target: founder italiani. Lingua: italiano.`;
               Il tuo workspace è pronto, {form.name.split(" ")[0]}! 🎉
             </h1>
             <p className="mt-2 text-[15px] text-muted-foreground">
-              Hai attivato il Free Trial — 30 giorni per esplorare Pilot.
+              Hai attivato il Free Trial — 14 giorni per esplorare Pilot.
               <br />Scegli il piano più adatto a te per continuare.
             </p>
           </div>

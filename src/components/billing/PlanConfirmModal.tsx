@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
-import { PLAN_BY_ID, type PlanId, type PaidPlanId } from "@/lib/billing";
+import { PLAN_BY_ID, type PlanId, type PaidPlanId, type BillingPeriod, getPlanPrice } from "@/lib/billing";
 import { createCheckoutSession } from "@/lib/checkout.functions";
 import { setPlan } from "@/lib/mockAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,10 +10,11 @@ import { AuthRequiredModal } from "./AuthRequiredModal";
 
 type Props = {
   plan: PaidPlanId | null;
+  billing?: BillingPeriod;
   onClose: () => void;
 };
 
-export function PlanConfirmModal({ plan, onClose }: Props) {
+export function PlanConfirmModal({ plan, billing = "monthly", onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
@@ -30,6 +31,10 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
     return <AuthRequiredModal plan={needsAuth} onClose={() => setNeedsAuth(null)} />;
   }
   const p = PLAN_BY_ID[plan as PlanId];
+  const isAnnual = billing === "annual";
+  const totalAmount = getPlanPrice(p, billing);
+  const monthlyEquiv = isAnnual ? (p.priceAnnualMonthly ?? p.price) : p.price;
+  const savings = isAnnual ? p.savingsAnnual : undefined;
 
   const go = async () => {
     setLoading(true);
@@ -48,6 +53,8 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
         origin: window.location.origin,
         userId: sess.session.user.id,
         email: sess.session.user.email,
+        billing,
+        amount: totalAmount,
       });
       if (res.ok) {
         window.location.href = res.url;
@@ -63,9 +70,9 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
   };
 
   const demoUpgrade = () => {
-    setPlan(plan, { amount: p.price, mode: "demo" });
+    setPlan(plan, { amount: totalAmount, mode: "demo" });
     onClose();
-    window.location.href = `/payment-success?plan=${plan}&demo=1`;
+    window.location.href = `/payment-success?plan=${plan}&demo=1&billing=${billing}`;
   };
 
   return (
@@ -105,15 +112,41 @@ export function PlanConfirmModal({ plan, onClose }: Props) {
             </p>
 
             <div className="mt-5 rounded-2xl border border-border bg-surface/60 p-4">
-              <div className="flex items-baseline justify-between">
-                <div className="text-[13px] font-medium">{p.name}</div>
+              <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="font-display text-2xl font-semibold">{p.priceLabel}</span>
-                  <span className="ml-1 text-[12px] text-muted-foreground">{p.per}</span>
+                  <div className="text-[13px] font-medium">{p.name}</div>
+                  <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                    Periodo: <span className="font-medium text-foreground">{isAnnual ? "Annuale" : "Mensile"}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div>
+                    <span className="font-display text-2xl font-semibold">{monthlyEquiv}€</span>
+                    <span className="ml-1 text-[12px] text-muted-foreground">/ mese</span>
+                  </div>
+                  {isAnnual && (
+                    <div className="text-[11.5px] text-muted-foreground">
+                      fatturato €{totalAmount}/anno
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {savings && (
+                <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-2">
+                  <span className="text-[12px] font-semibold text-emerald-600">🎉 Risparmi €{savings}/anno</span>
+                  <span className="text-[11.5px] text-muted-foreground">rispetto al mensile</span>
+                </div>
+              )}
+
+              {isAnnual && (
+                <p className="mt-2 text-[11.5px] text-muted-foreground">
+                  Fatturato oggi €{totalAmount}, poi €{totalAmount} ogni anno.
+                </p>
+              )}
+
               <ul className="mt-3 grid gap-1.5">
-                {p.features.slice(0, 6).map((f) => (
+                {p.features.slice(0, 5).map((f) => (
                   <li key={f} className="flex items-start gap-2 text-[13px]">
                     <Check className="mt-0.5 h-3.5 w-3.5 text-brand" /> {f}
                   </li>
