@@ -7,7 +7,8 @@ import { Logo } from "@/components/brand/Logo";
 import { getUser, setUser } from "@/lib/mockAuth";
 import { generateProject, } from "@/lib/projectGenerator";
 import { saveProject } from "@/lib/projectStore";
-import type { Task } from "@/lib/projectStore";
+import type { Task, TaskArea } from "@/lib/projectStore";
+import { generateProjectFromOnboarding } from "@/lib/claude.functions";
 import { cn } from "@/lib/utils";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -161,9 +162,19 @@ export default function OnboardingPage() {
     if (localStorage.getItem(ONBOARDING_KEY)) router.replace("/app");
   }, [router]);
 
-  // Loading animation
+  // Loading animation + AI project generation
   useEffect(() => {
     if (step !== 5) return;
+
+    // Start Claude generation concurrently with the animation
+    const claudePrompt = `Genera un progetto startup per: "${form.projectName}".
+Fase: ${form.phase}. Budget: ${form.budget}. Team: ${form.team}. Obiettivo 30gg: ${form.goal}.
+Settore: SaaS/Tech. Target: founder italiani. Lingua: italiano.`;
+    let claudeResultText: string | null = null;
+    const claudePromise = generateProjectFromOnboarding(claudePrompt).then((r) => {
+      if (r.ok) claudeResultText = r.text;
+    });
+
     let idx = 0;
     const iv = setInterval(() => {
       idx++;
@@ -171,9 +182,15 @@ export default function OnboardingPage() {
         setLoadMsgIdx(idx);
       } else {
         clearInterval(iv);
-        // Generate project then go to plan screen
-        generateAndSave(form);
-        setStep(6);
+        // Wait for Claude then save, fall back to local generator if needed
+        claudePromise.then(() => {
+          if (claudeResultText) {
+            generateAndSaveFromAI(claudeResultText, form);
+          } else {
+            generateAndSave(form);
+          }
+          setStep(6);
+        });
       }
     }, 700);
     return () => clearInterval(iv);
@@ -568,6 +585,58 @@ function OptionCards({
 }
 
 // ── Project generation ────────────────────────────────────────────────────────
+
+function generateAndSaveFromAI(jsonText: string, form: FormData) {
+  try {
+    const ai = JSON.parse(jsonText);
+    const user = getUser();
+    const onboarding = {
+      idea: form.projectName,
+      sector: "SaaS",
+      type: "SaaS",
+      target: ai.target ?? "Founder e imprenditori italiani",
+      location: "Italia",
+      budget: form.budget,
+      stage: form.phase.replace("+", ""),
+      team: form.team,
+      goal: form.goal,
+    };
+    const base = generateProject(onboarding);
+    base.name = ai.name ?? form.projectName ?? base.name;
+    base.onelinePitch = ai.description ?? base.onelinePitch;
+    if (ai.mvp?.length) base.mvpEssential = ai.mvp.slice(0, 5);
+    if (ai.tasks?.length) {
+      const presetTasks = (ai.tasks as { title: string; priority: string; area: string; duration: string; output: string }[])
+        .slice(0, 5)
+        .map((t, i) => ({
+          ...base.tasks[i] ?? base.tasks[0],
+          title: t.title,
+          priority: (["Alta", "Media", "Bassa"].includes(t.priority) ? t.priority : "Media") as "Alta" | "Media" | "Bassa",
+          area: (["Idea", "MVP", "Budget", "Validation", "Marketing", "Brand", "Pitch"].includes(t.area) ? t.area : "MVP") as TaskArea,
+          duration: t.duration ?? "2 ore",
+          output: t.output ?? "Completato",
+          id: `ai-task-${i}`,
+          status: "Da fare" as const,
+          description: t.title,
+          why: "Task generato dall'AI in base al tuo obiettivo.",
+          steps: [],
+        }));
+      base.tasks = [...presetTasks, ...base.tasks.slice(presetTasks.length)];
+    }
+    if (ai.healthScore) (base as Record<string, unknown>).healthScore = ai.healthScore;
+    saveProject(base);
+    if (user) {
+      setUser({ ...user, name: form.name || user.name, onboarded: true,
+        project: { name: base.name, idea: onboarding.idea, sector: onboarding.sector,
+          location: onboarding.location, target: onboarding.target, budget: onboarding.budget,
+          stage: onboarding.stage, team: onboarding.team, goal: onboarding.goal, type: onboarding.type },
+      });
+    }
+    try { localStorage.setItem("pilot-onboarding", "1"); } catch {}
+  } catch {
+    generateAndSave(form);
+  }
+}
 
 function generateAndSave(form: FormData) {
   const user = getUser();

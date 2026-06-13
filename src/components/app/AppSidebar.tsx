@@ -5,12 +5,14 @@ import {
   LayoutDashboard, Lightbulb, Palette, FileText, Coins, Wrench, Map, ListChecks,
   ShieldCheck, Megaphone, Presentation, Banknote, Users, Receipt, Wallet, Files,
   Plug, Sparkles, ShieldAlert, BadgeCheck, LifeBuoy, Settings, ChevronLeft,
-  Compass, Share2,
+  Compass, Share2, Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { WorkspaceSidebarPanel } from "@/components/app/WorkspaceSidebar";
+import { useUser } from "@/lib/mockAuth";
+import { checkUsageLimit } from "@/lib/claudeAI";
 
 const sections: { label?: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   { items: [
@@ -66,6 +68,49 @@ const sections: { label?: string; items: { to: string; label: string; icon: Reac
   },
 ];
 
+function AIUsageBar({ collapsed }: { collapsed: boolean }) {
+  const user = useUser();
+  const plan = user?.plan ?? "free";
+  const usage = checkUsageLimit(plan);
+  if (usage.limit >= 999999) return null;
+
+  const pct = Math.round((usage.used / usage.limit) * 100);
+  const exhausted = !usage.allowed;
+  const warning = usage.remaining <= Math.ceil(usage.limit * 0.2);
+  const barColor = exhausted ? "bg-destructive" : warning ? "bg-amber-500" : "bg-brand";
+
+  if (collapsed) {
+    return (
+      <NextLink href="/app/co-founder" title={`AI: ${usage.remaining} rimaste`}
+        className="mx-auto mb-2 flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-surface hover:bg-accent"
+      >
+        <Zap className={cn("h-3.5 w-3.5", exhausted ? "text-destructive" : warning ? "text-amber-500" : "text-brand")} />
+      </NextLink>
+    );
+  }
+
+  return (
+    <div className="mx-2.5 mb-3 rounded-xl border border-border bg-surface/60 px-3 py-2.5">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+          <Zap className="h-3 w-3" /> Co-founder AI
+        </span>
+        <NextLink href="/app/plan" className={cn("text-[10.5px] font-medium hover:underline",
+          exhausted ? "text-destructive" : warning ? "text-amber-500" : "text-muted-foreground"
+        )}>
+          {exhausted ? "Upgrade" : `${usage.remaining} rimaste`}
+        </NextLink>
+      </div>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div className={cn("h-full rounded-full transition-all", barColor)} style={{ width: `${pct}%` }} />
+      </div>
+      {exhausted && (
+        <p className="mt-1 text-[10.5px] text-destructive">Limite mensile raggiunto</p>
+      )}
+    </div>
+  );
+}
+
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
@@ -90,6 +135,8 @@ export function AppSidebar() {
 
       {/* Workspace switcher */}
       <WorkspaceSidebarPanel collapsed={collapsed} />
+
+      <AIUsageBar collapsed={collapsed} />
 
       <nav className="scrollbar-thin flex-1 space-y-5 overflow-y-auto px-2.5 pb-6">
         {sections.map((sec, i) => (

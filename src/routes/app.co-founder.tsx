@@ -1,50 +1,17 @@
+"use client";
 import { useState } from "react";
-import { Sparkles, Send, Wand2, HeadphonesIcon, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Sparkles, Send, Wand2, HeadphonesIcon, X, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { LogoMark } from "@/components/brand/Logo";
 import { Card, PageHeader, Pill } from "@/components/app/ui";
-import { useProject, analyzeBudget, computeHealth, formatEuro, type Project } from "@/lib/projectStore";
+import { useProject, analyzeBudget, computeHealth, formatEuro } from "@/lib/projectStore";
 import { useUser } from "@/lib/mockAuth";
-import { createSupportTicket } from "@/lib/notion";
+import { submitSupportTicket } from "@/lib/notion.functions";
+import { askCoFounder } from "@/lib/claude.functions";
+import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
 
 export default CoFounder;
 
 type Msg = { role: "user" | "ai"; text: string };
-
-// Hook to plug a real AI later. For now: contextual local logic.
-function replyFor(question: string, p: Project): string {
-  const q = question.toLowerCase();
-  const todo = p.tasks.filter((t) => t.status !== "Completato");
-  const next = todo[0];
-  const b = analyzeBudget(p);
-  const { score } = computeHealth(p);
-
-  if (q.includes("oggi") || q.includes("cosa devo")) {
-    return next
-      ? `Oggi concentrati su: "${next.title}" (${next.duration}). Perché: ${next.why} Output atteso: ${next.output}.`
-      : "Hai completato tutti i task pianificati. Passa alla fase 60 giorni: scegli 3 funzioni essenziali della beta privata.";
-  }
-  if (q.includes("mvp") && (q.includes("grande") || q.includes("troppo"))) {
-    return p.mvpEssential.length > 3
-      ? `Sì, l'MVP rischia di essere troppo grande. Riduci a 3 funzioni: ${p.mvpEssential.slice(0, 3).join(", ")}. Sposta il resto a "da rimandare".`
-      : `Il tuo MVP è già focalizzato su 3 funzioni: ${p.mvpEssential.join(", ")}. Resta su queste e valida prima di aggiungere.`;
-  }
-  if (q.includes("validar") || q.includes("validazione")) {
-    return `Per validare "${p.onelinePitch}": 1) identifica 20 persone del target (${p.onboarding.target}), 2) 5 domande aperte sul problema, 3) cerca pattern ricorrenti, 4) pubblica una landing waitlist e misura conversione.`;
-  }
-  if (q.includes("cost") || q.includes("budget") || q.includes("ridurre")) {
-    return `Budget disponibile ${formatEuro(b.available)} vs MVP stimato ${formatEuro(b.estimated)} — rischio ${b.risk}. ${b.recommendation}`;
-  }
-  if (q.includes("pitch")) {
-    return `Pitch breve: "${p.name} aiuta ${p.onboarding.target} a ${p.blueprint.valueProp.toLowerCase()}". Modello: ${p.blueprint.businessModel}`;
-  }
-  if (q.includes("roadmap") || q.includes("migliora")) {
-    return `Roadmap: 30gg validazione (interviste + landing), 60gg MVP (${p.mvpEssential.join(", ")}), 90gg lancio. Concentrati sul 30gg prima di pensare al 60.`;
-  }
-  if (q.includes("competitor")) {
-    return `Per ${p.onboarding.sector}: cerca 3 player diretti, 3 indiretti e 3 alternative non-software. Analizza prezzo, target e proposta in 1 tabella.`;
-  }
-  return `Capito. Considera lo stato attuale: health score ${score}/100, ${todo.length} task da completare, fase "${p.onboarding.stage}". La prossima azione concreta: ${next?.title || "pianifica la fase successiva"}.`;
-}
 
 function SupportModal({ onClose, userEmail }: { onClose: () => void; userEmail: string }) {
   const [title, setTitle] = useState("");
@@ -56,13 +23,14 @@ function SupportModal({ onClose, userEmail }: { onClose: () => void; userEmail: 
     if (!title.trim() || !message.trim()) return;
     setStatus("loading");
     try {
-      await createSupportTicket({
+      const result = await submitSupportTicket({
         title: title.trim(),
         email: userEmail,
         message: message.trim(),
         category: "domanda",
         priority: "media",
       });
+      if (!result.ok) throw new Error(result.error);
       setStatus("ok");
     } catch (err) {
       console.error("[notion] createSupportTicket:", err);
@@ -142,16 +110,60 @@ function CoFounder() {
     { role: "ai", text: "Ciao 👋 Sono il tuo Co-founder AI. Conosco il tuo progetto. Da dove vuoi iniziare oggi?" },
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
 
-  const send = (text?: string) => {
+  const plan = user?.plan ?? "free";
+  const usage = checkUsageLimit(plan);
+
+  const buildContext = () => {
+    if (!proj) return "Nessun progetto creato ancora.";
+    const { score } = computeHealth(proj);
+    const b = analyzeBudget(proj);
+    const todo = proj.tasks.filter((t) => t.status !== "Completato");
+    return [
+      `Progetto: ${proj.name}`,
+      `Descrizione: ${proj.onelinePitch ?? ""}`,
+      `Fase: ${proj.onboarding.stage}`,
+      `Settore: ${proj.onboarding.sector}`,
+      `Target: ${proj.blueprint?.target ?? ""}`,
+      `Problema: ${proj.blueprint?.problem ?? ""}`,
+      `Soluzione: ${proj.blueprint?.solution ?? ""}`,
+      `Modello di business: ${proj.blueprint?.businessModel ?? ""}`,
+      `MVP essenziale: ${proj.mvpEssential?.join(", ") ?? ""}`,
+      `Health score: ${score}/100`,
+      `Budget disponibile: ${formatEuro(b.available)}, MVP stimato: ${formatEuro(b.estimated)}, rischio: ${b.risk}`,
+      `Task aperti: ${todo.length}`,
+      todo.length > 0 ? `Prossimo task: ${todo[0].title}` : "",
+    ].filter(Boolean).join("\n");
+  };
+
+  const send = async (text?: string) => {
     const t = (text ?? input).trim();
-    if (!t || !proj) return;
+    if (!t || loading) return;
+
+    const freshUsage = checkUsageLimit(plan);
+    if (!freshUsage.allowed) {
+      setMsgs((m) => [...m, {
+        role: "ai",
+        text: "Hai esaurito le chiamate AI per questo mese. Upgrada il piano per continuare.",
+      }]);
+      return;
+    }
+
     setMsgs((m) => [...m, { role: "user", text: t }]);
     setInput("");
-    setTimeout(() => {
-      setMsgs((m) => [...m, { role: "ai", text: replyFor(t, proj) }]);
-    }, 500);
+    setLoading(true);
+
+    incrementUsage();
+    const result = await askCoFounder(t, buildContext());
+    setLoading(false);
+
+    if (result.ok) {
+      setMsgs((m) => [...m, { role: "ai", text: result.text }]);
+    } else {
+      setMsgs((m) => [...m, { role: "ai", text: result.error }]);
+    }
   };
 
   const suggestions = [
@@ -162,6 +174,10 @@ function CoFounder() {
     "Genera un pitch breve",
     "Migliora la roadmap",
   ];
+
+  const usagePct = usage.limit < 999999 ? Math.round((usage.used / usage.limit) * 100) : 0;
+  const usageWarning = usage.limit < 999999 && usage.remaining <= Math.ceil(usage.limit * 0.2);
+  const usageExhausted = !usage.allowed;
 
   return (
     <div className="mx-auto flex h-[calc(100vh-160px)] max-w-4xl flex-col space-y-4">
@@ -182,10 +198,42 @@ function CoFounder() {
             >
               <HeadphonesIcon className="h-3.5 w-3.5" /> Contatta supporto
             </button>
-            <Pill tone="brand"><Sparkles className="h-3 w-3" /> Online</Pill>
+            {usageExhausted ? (
+              <Pill tone="warn"><AlertTriangle className="h-3 w-3" /> Limite raggiunto</Pill>
+            ) : (
+              <Pill tone="brand"><Sparkles className="h-3 w-3" /> {usage.remaining} rimaste</Pill>
+            )}
           </div>
         }
       />
+
+      {/* Usage bar (only for metered plans) */}
+      {usage.limit < 999999 && (
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-surface/60 px-3 py-2">
+          <div className="flex-1">
+            <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
+              <span>Chiamate AI usate</span>
+              <span className={usageExhausted ? "text-destructive" : usageWarning ? "text-amber-500" : ""}>
+                {usage.used} / {usage.limit}
+              </span>
+            </div>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full transition-all ${usageExhausted ? "bg-destructive" : usageWarning ? "bg-amber-500" : "bg-brand"}`}
+                style={{ width: `${usagePct}%` }}
+              />
+            </div>
+          </div>
+          {(usageWarning || usageExhausted) && (
+            <a
+              href="/app/plan"
+              className={`shrink-0 text-[11.5px] font-medium hover:underline ${usageExhausted ? "text-destructive" : "text-amber-500"}`}
+            >
+              Upgrade
+            </a>
+          )}
+        </div>
+      )}
 
       <Card className="flex flex-1 flex-col">
         <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto pr-1">
@@ -197,11 +245,24 @@ function CoFounder() {
               </div>
             </div>
           ))}
+          {loading && (
+            <div className="flex gap-2">
+              <LogoMark size={22} className="mt-1 text-brand" />
+              <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-[14px] text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sto pensando…
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           {suggestions.map((s) => (
-            <button key={s} onClick={() => send(s)} className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-muted-foreground hover:border-brand hover:text-foreground">
+            <button
+              key={s}
+              onClick={() => send(s)}
+              disabled={loading || usageExhausted}
+              className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-muted-foreground hover:border-brand hover:text-foreground disabled:opacity-40"
+            >
               <Wand2 className="mr-1 inline h-3 w-3" /> {s}
             </button>
           ))}
@@ -211,12 +272,17 @@ function CoFounder() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="Chiedi al tuo co-founder…"
-            className="flex-1 bg-transparent px-2 text-[14px] outline-none"
+            onKeyDown={(e) => e.key === "Enter" && !loading && send()}
+            placeholder={usageExhausted ? "Limite chiamate raggiunto — upgrada il piano" : "Chiedi al tuo co-founder…"}
+            disabled={usageExhausted}
+            className="flex-1 bg-transparent px-2 text-[14px] outline-none disabled:opacity-50"
           />
-          <button onClick={() => send()} className="rounded-lg bg-foreground p-2 text-background hover:opacity-90">
-            <Send className="h-3.5 w-3.5" />
+          <button
+            onClick={() => send()}
+            disabled={loading || usageExhausted}
+            className="rounded-lg bg-foreground p-2 text-background hover:opacity-90 disabled:opacity-40"
+          >
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           </button>
         </div>
       </Card>

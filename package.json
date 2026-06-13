@@ -11,6 +11,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@hookform/resolvers": "^5.2.2",
     "@notionhq/client": "^5.22.0",
     "@radix-ui/react-accordion": "^1.2.12",
