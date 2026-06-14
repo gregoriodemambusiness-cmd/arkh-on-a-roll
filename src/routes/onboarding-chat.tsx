@@ -2,79 +2,87 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, Target, Wallet, Users, Flag, Box, Check } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { getUser, setUser } from "@/lib/mockAuth";
 import { generateProject } from "@/lib/projectGenerator";
 import { saveProject } from "@/lib/projectStore";
-import { generateProjectFromOnboarding } from "@/lib/claude.functions";
+import { conductOnboardingTurn, generateWorkspaceFromConversation } from "@/lib/claude.functions";
 import { sendWelcomeEmail } from "@/lib/email.functions";
 import type { TaskArea, RoadmapPhase } from "@/lib/projectStore";
 
-type Msg = { role: "user" | "ai"; text: string };
+type HistoryMsg = { role: "user" | "assistant"; content: string };
+type DisplayMsg = { role: "user" | "ai"; text: string };
+type AppPhase = "chat" | "loading" | "done";
 
-type CollectedData = {
-  projectName: string;
-  projectType: string;
-  phase: string;
-  budgetAmount: number;
-  team: string;
-  goal: string;
+type WorkspaceResult = {
+  name?: string;
+  type?: string;
+  description?: string;
+  phase?: string;
+  budget?: number;
+  team?: string;
+  blueprint?: {
+    problem?: string;
+    solution?: string;
+    target?: string;
+    valueProposition?: string;
+    businessModel?: string;
+    competitors?: string;
+    differentiator?: string;
+  };
+  tasks?: Array<{ title: string; description?: string; priority: string; duration?: string; output?: string; status?: string }>;
+  roadmap?: Record<string, string[]>;
+  risks?: Array<{ title?: string; description?: string; severity?: string; mitigation?: string } | string>;
+  founderGuardAlerts?: string[];
+  nextAction?: string;
+  healthScore?: number;
+  insights?: string[];
 };
 
-const TOTAL_STEPS = 6;
-
-const INITIAL_MSG =
-  "Benvenuto in Pilot.\nSono il tuo Co-founder AI.\nCostruiremo insieme il tuo workspace personalizzato.\n\nCome si chiama il tuo progetto?";
-
-function aiReplyForStep(nextStep: number, data: CollectedData): string {
-  if (nextStep === 1) return `${data.projectName}.\n\nSu cosa stai lavorando esattamente?`;
-  if (nextStep === 2) return "In che fase sei adesso?";
-  if (nextStep === 3) return "Qual e il budget che hai a disposizione?";
-  if (nextStep === 4) return "Come stai lavorando?";
-  if (nextStep === 5) return "Qual e il tuo obiettivo nei prossimi 30 giorni?";
-  return "";
-}
-
-const STEP_SUGGESTIONS: Record<number, string[]> = {
-  1: ["App mobile", "SaaS / Web app", "E-commerce", "Servizio professionale", "Marketplace", "Altro"],
-  2: ["Ho solo l'idea", "Sto validando con utenti", "Ho gia un MVP", "Sono gia live", "Voglio scalare"],
-  4: ["Solo", "Con un co-founder", "Team 2-5 persone", "Team strutturato"],
-  5: [
-    "Validare l'idea",
-    "Costruire l'MVP",
-    "Trovare i primi clienti",
-    "Lanciare pubblicamente",
-    "Trovare investitori",
-    "Automatizzare processi",
-  ],
+const PHASE_LABELS: Record<number, string> = {
+  1: "Esplorazione idea",
+  2: "Analisi mercato e utenti",
+  3: "Strategia e rischi",
+  4: "Generazione workspace",
 };
 
-const LOADING_STEPS = [
-  "Analizzo il tuo progetto...",
-  "Genero il blueprint...",
-  "Creo la roadmap 30/60/90...",
-  "Preparo i tuoi task prioritari...",
+const LOADING_MESSAGES = [
+  "Analizzo la conversazione...",
+  "Identifico il mercato target...",
+  "Costruisco il tuo blueprint...",
+  "Genero la roadmap personalizzata...",
+  "Preparo i task prioritari...",
   "Calibro il Budget Guard...",
+  "Analizzo i rischi specifici...",
+  "Ottimizzando il workspace...",
   "Il tuo workspace e pronto.",
 ];
 
 function budgetGradient(val: number): string {
-  if (val < 2000) return "linear-gradient(90deg,#f97316,#fb923c)";
-  if (val < 10000) return "linear-gradient(90deg,#eab308,#84cc16)";
+  if (val < 3000) return "linear-gradient(90deg,#FF6B35,#f97316)";
+  if (val < 15000) return "linear-gradient(90deg,#F7B731,#eab308)";
   return "linear-gradient(90deg,#7B2FFF,#a855f7)";
 }
 
 function budgetHint(val: number): string {
-  if (val < 2000) return "Budget early stage. Validazione prima di tutto.";
-  if (val < 10000) return "Budget MVP. Costruisci il minimo indispensabile.";
-  return "Budget solido. Puoi muoverti velocemente.";
+  if (val < 3000) return "Budget early stage. La validazione costa poco. Inizia a parlare con i clienti.";
+  if (val < 15000) return "Budget MVP. Abbastanza per costruire e testare il minimo indispensabile.";
+  return "Budget solido. Puoi permetterti di muoverti velocemente e fare errori.";
 }
 
-function BudgetSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const pct = Math.round(((value - 500) / (100000 - 500)) * 100);
+function BudgetSlider({
+  value,
+  onChange,
+  onConfirm,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  onConfirm: () => void;
+}) {
+  const pct = Math.round(((value - 500) / (150000 - 500)) * 100);
   return (
-    <div className="w-full space-y-5">
+    <div className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-5 space-y-5">
       <div className="text-center">
         <motion.p
           key={value}
@@ -99,7 +107,7 @@ function BudgetSlider({ value, onChange }: { value: number; onChange: (v: number
         <input
           type="range"
           min={500}
-          max={100000}
+          max={150000}
           step={500}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
@@ -108,184 +116,65 @@ function BudgetSlider({ value, onChange }: { value: number; onChange: (v: number
       </div>
       <div className="flex justify-between text-[11px] text-white/25">
         <span>€ 500</span>
-        <span>€ 100.000</span>
+        <span>€ 150.000</span>
       </div>
+      <button
+        onClick={onConfirm}
+        className="w-full rounded-xl py-3 text-[14px] font-semibold text-white transition active:scale-95"
+        style={{ backgroundColor: "#7B2FFF" }}
+      >
+        Conferma
+      </button>
     </div>
   );
 }
 
-function PreviewPanel({ collected, step }: { collected: CollectedData; step: number }) {
-  const hasName = step >= 1 && collected.projectName;
-  const hasType = step >= 2 && collected.projectType;
-  const hasPhase = step >= 3 && collected.phase;
-  const hasBudget = step >= 4 && collected.budgetAmount > 0;
-  const hasTeam = step >= 5 && collected.team;
-  const hasGoal = step >= 6 && collected.goal;
-
-  if (!hasName) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <div className="h-10 w-10 rounded-full border border-white/10 bg-white/5" />
-        <p className="text-[13px] text-white/25">Il tuo workspace si costruira qui</p>
-      </div>
-    );
-  }
-
+function ThinkingDots() {
   return (
-    <div className="space-y-3">
-      <p className="mb-4 text-[11px] font-medium uppercase tracking-widest text-white/30">Anteprima workspace</p>
-
-      {/* Project name */}
-      <AnimatePresence>
-        {hasName && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-white/10 bg-white/5 p-4"
-          >
-            <div className="mb-1 flex items-center gap-2">
-              <Box className="h-3.5 w-3.5 text-brand" />
-              <span className="text-[10px] font-medium uppercase tracking-wider text-brand">Progetto</span>
-            </div>
-            <p className="font-display text-[18px] font-bold text-white">{collected.projectName}</p>
-            {hasType && (
-              <span className="mt-2 inline-block rounded-full border border-brand/30 bg-brand/15 px-2.5 py-0.5 text-[11px] font-medium text-brand">
-                {collected.projectType}
-              </span>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Phase */}
-      <AnimatePresence>
-        {hasPhase && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-          >
-            <Target className="h-4 w-4 shrink-0 text-white/50" />
-            <div>
-              <p className="text-[10px] text-white/40">Fase attuale</p>
-              <p className="text-[13px] font-medium text-white">{collected.phase}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Budget */}
-      <AnimatePresence>
-        {hasBudget && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-          >
-            <div className="flex items-center gap-3">
-              <Wallet className="h-4 w-4 shrink-0 text-white/50" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-white/40">Budget disponibile</p>
-                <p className="font-display text-[15px] font-bold text-white">
-                  {`€ ${collected.budgetAmount.toLocaleString("it-IT")}`}
-                </p>
-              </div>
-            </div>
-            <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10">
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: budgetGradient(collected.budgetAmount) }}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, (collected.budgetAmount / 100000) * 100)}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Team */}
-      <AnimatePresence>
-        {hasTeam && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-          >
-            <Users className="h-4 w-4 shrink-0 text-white/50" />
-            <div>
-              <p className="text-[10px] text-white/40">Team</p>
-              <p className="text-[13px] font-medium text-white">{collected.team}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Goal */}
-      <AnimatePresence>
-        {hasGoal && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-          >
-            <Flag className="h-4 w-4 shrink-0 text-white/50" />
-            <div>
-              <p className="text-[10px] text-white/40">Obiettivo 30 giorni</p>
-              <p className="text-[13px] font-medium text-white">{collected.goal}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Steps checklist */}
-      <div className="mt-4 space-y-1">
-        {[
-          { label: "Nome progetto", done: !!hasName },
-          { label: "Tipo progetto", done: !!hasType },
-          { label: "Fase attuale", done: !!hasPhase },
-          { label: "Budget", done: !!hasBudget },
-          { label: "Team", done: !!hasTeam },
-          { label: "Obiettivo", done: !!hasGoal },
-        ].map((item) => (
-          <div key={item.label} className="flex items-center gap-2">
-            <div
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] transition-colors ${
-                item.done ? "border-brand bg-brand" : "border-white/20"
-              }`}
-            >
-              {item.done && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-            </div>
-            <span className={`text-[12px] ${item.done ? "text-white/70" : "text-white/25"}`}>{item.label}</span>
-          </div>
-        ))}
-      </div>
+    <div className="rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 inline-flex gap-1.5 items-center">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="h-2 w-2 rounded-full bg-white/30"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+        />
+      ))}
     </div>
   );
 }
 
 export default function OnboardingChatPage() {
   const router = useRouter();
-  const [msgs, setMsgs] = useState<Msg[]>([{ role: "ai", text: INITIAL_MSG }]);
+
+  // Full conversation history for Claude API
+  const [history, setHistory] = useState<HistoryMsg[]>([]);
+  // Display messages (what user sees)
+  const [displayMsgs, setDisplayMsgs] = useState<DisplayMsg[]>([
+    {
+      role: "ai",
+      text: "Benvenuto in Pilot. Sono il tuo Co-founder AI.\nNei prossimi 15-20 minuti costruiremo insieme il tuo workspace personalizzato.\nInizia raccontandomi la tua idea — nei minimi dettagli, senza filtri.",
+    },
+  ]);
+
   const [input, setInput] = useState("");
-  const [step, setStep] = useState(0);
+  const [isSending, setIsSending] = useState(false);
+  const [conversationPhase, setConversationPhase] = useState(1);
   const [budgetVal, setBudgetVal] = useState(5000);
-  const [collected, setCollected] = useState<CollectedData>({
-    projectName: "",
-    projectType: "",
-    phase: "",
-    budgetAmount: 0,
-    team: "",
-    goal: "",
-  });
-  const [appPhase, setAppPhase] = useState<"chat" | "loading" | "done">("chat");
+  const [showBudgetSlider, setShowBudgetSlider] = useState(false);
+  const [budgetConfirmed, setBudgetConfirmed] = useState(false);
+  const [pills, setPills] = useState<string[]>([]);
+  const [appPhase, setAppPhase] = useState<AppPhase>("chat");
   const [loadStep, setLoadStep] = useState(0);
+  const [generatedData, setGeneratedData] = useState({ tasks: 0, risks: 0, insights: 0 });
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const isSendingRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, step]);
+  }, [displayMsgs, isSending, showBudgetSlider, pills]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -294,295 +183,428 @@ export default function OnboardingChatPage() {
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }, [input]);
 
-  const advanceStep = (userText: string, newCollected: CollectedData, newStep: number) => {
-    const newMsgs: Msg[] = [...msgs, { role: "user", text: userText }];
-    if (newStep < TOTAL_STEPS) {
-      const aiText = aiReplyForStep(newStep, newCollected);
-      setTimeout(() => {
-        setMsgs([...newMsgs, { role: "ai", text: aiText }]);
-        setStep(newStep);
-      }, 600);
-    } else {
-      setMsgs(newMsgs);
-      setStep(newStep);
-      startGeneration(newCollected);
+  const detectTriggers = (aiText: string, alreadyConfirmedBudget: boolean) => {
+    const lower = aiText.toLowerCase();
+
+    if (!alreadyConfirmedBudget && lower.includes("budget")) {
+      setShowBudgetSlider(true);
+      setPills([]);
+      return;
     }
+
+    if (
+      lower.includes("fase") &&
+      (lower.includes("adesso") || lower.includes("sei") || lower.includes("costruito") || lower.includes("hai un"))
+    ) {
+      setPills(["Ho solo l'idea", "Sto validando", "Ho un prototipo", "Ho gia clienti"]);
+      return;
+    }
+
+    if (
+      (lower.includes("lavorando") || lower.includes("lavori") || lower.includes("da solo") || lower.includes("team")) &&
+      !lower.includes("marketing") &&
+      !lower.includes("equipe")
+    ) {
+      setPills(["Solo", "Con un co-founder", "Team piccolo 2-4", "Team strutturato"]);
+      return;
+    }
+
+    if (lower.includes("obiettivo") && (lower.includes("30") || lower.includes("prossim") || lower.includes("mese"))) {
+      setPills(["Validare l'idea", "Costruire l'MVP", "Trovare clienti", "Raccogliere investimenti"]);
+      return;
+    }
+
+    setPills([]);
   };
 
-  const send = (text?: string) => {
+  const sendMessage = async (
+    text?: string,
+    currentHistory?: HistoryMsg[],
+    currentDisplay?: DisplayMsg[],
+    currentBudgetConfirmed?: boolean,
+  ) => {
     const t = (text ?? input).trim();
-    if (!t || step === 3) return; // step 3 uses confirmBudget
-    setInput("");
+    if (!t || isSendingRef.current || appPhase !== "chat") return;
 
-    const newCollected = { ...collected };
-    if (step === 0) newCollected.projectName = t;
-    if (step === 1) newCollected.projectType = t;
-    if (step === 2) newCollected.phase = t;
-    if (step === 4) newCollected.team = t;
-    if (step === 5) newCollected.goal = t;
-    setCollected(newCollected);
-    advanceStep(t, newCollected, step + 1);
+    isSendingRef.current = true;
+    setIsSending(true);
+    setPills([]);
+    setShowBudgetSlider(false);
+    if (text === undefined) setInput("");
+
+    const prevHistory = currentHistory ?? history;
+    const prevDisplay = currentDisplay ?? displayMsgs;
+    const alreadyConfirmed = currentBudgetConfirmed ?? budgetConfirmed;
+
+    const newDisplay: DisplayMsg[] = [...prevDisplay, { role: "user", text: t }];
+    setDisplayMsgs(newDisplay);
+
+    const newHistory: HistoryMsg[] = [...prevHistory, { role: "user", content: t }];
+    setHistory(newHistory);
+
+    // Update phase estimate based on exchange count
+    const exchanges = Math.floor(newHistory.length / 2);
+    if (exchanges < 5) setConversationPhase(1);
+    else if (exchanges < 10) setConversationPhase(2);
+    else setConversationPhase(3);
+
+    try {
+      const result = await conductOnboardingTurn(newHistory);
+
+      if (result.ok) {
+        const aiText = result.text;
+
+        if (aiText.includes("WORKSPACE_GENERATION_START")) {
+          const parts = aiText.split("WORKSPACE_GENERATION_START");
+          const beforeSignal = parts[0].trim();
+
+          const finalDisplay: DisplayMsg[] = beforeSignal
+            ? [...newDisplay, { role: "ai", text: beforeSignal }]
+            : newDisplay;
+          setDisplayMsgs(finalDisplay);
+
+          const finalHistory: HistoryMsg[] = [...newHistory, { role: "assistant", content: aiText }];
+          setConversationPhase(4);
+          isSendingRef.current = false;
+          setIsSending(false);
+          startWorkspaceGeneration(finalHistory);
+        } else {
+          setDisplayMsgs([...newDisplay, { role: "ai", text: aiText }]);
+          setHistory([...newHistory, { role: "assistant", content: aiText }]);
+          detectTriggers(aiText, alreadyConfirmed);
+          isSendingRef.current = false;
+          setIsSending(false);
+        }
+      } else {
+        setDisplayMsgs([...newDisplay, { role: "ai", text: "C'e stato un problema di connessione. Riprova." }]);
+        isSendingRef.current = false;
+        setIsSending(false);
+      }
+    } catch {
+      setDisplayMsgs([...newDisplay, { role: "ai", text: "C'e stato un problema di connessione. Riprova." }]);
+      isSendingRef.current = false;
+      setIsSending(false);
+    }
   };
 
   const confirmBudget = () => {
     const label = `€ ${budgetVal.toLocaleString("it-IT")}`;
-    const newCollected = { ...collected, budgetAmount: budgetVal };
-    setCollected(newCollected);
-    advanceStep(label, newCollected, 4);
+    setBudgetConfirmed(true);
+    setShowBudgetSlider(false);
+    sendMessage(label, history, displayMsgs, true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send();
+      sendMessage();
     }
   };
 
-  const startGeneration = async (data: CollectedData) => {
+  const startWorkspaceGeneration = async (convHistory: HistoryMsg[]) => {
     setAppPhase("loading");
+    setLoadStep(0);
+
+    const startTime = Date.now();
+    let msgIdx = 0;
     const iv = setInterval(() => {
-      setLoadStep((s) => {
-        if (s < LOADING_STEPS.length - 1) return s + 1;
+      msgIdx++;
+      if (msgIdx < LOADING_MESSAGES.length - 1) {
+        setLoadStep(msgIdx);
+      } else {
         clearInterval(iv);
-        return s;
-      });
-    }, 800);
+      }
+    }, 1200);
 
-    const prompt = `Sei un esperto di startup. Crea un workspace completo in JSON basandoti SOLO su questi dati reali. Non inventare nulla. Zero emoji.
+    const convStr = convHistory
+      .map((m) => `${m.role === "user" ? "UTENTE" : "CO-FOUNDER AI"}: ${m.content}`)
+      .join("\n\n");
 
-Nome: ${data.projectName}
-Tipo: ${data.projectType}
-Fase: ${data.phase}
-Budget: ${data.budgetAmount}
-Team: ${data.team}
-Obiettivo 30gg: ${data.goal}
+    const result = await generateWorkspaceFromConversation(convStr);
 
-Rispondi SOLO con JSON valido (niente markdown, niente backtick, solo JSON puro):
-{"name":"...","type":"...","description":"...","phase":"...","budget":${data.budgetAmount},"blueprint":{"problem":"...","solution":"...","target":"...","valueProposition":"...","businessModel":"..."},"tasks":[{"title":"...","priority":"Alta","duration":"...","output":"...","status":"Da fare"},{"title":"...","priority":"Media","duration":"...","output":"...","status":"Da fare"},{"title":"...","priority":"Bassa","duration":"...","output":"...","status":"Da fare"}],"roadmap":{"30":["...","...","..."],"60":["...","...","..."],"90":["...","...","..."]},"risks":["...","..."],"nextAction":"...","healthScore":65}`;
-
-    const result = await generateProjectFromOnboarding(prompt);
     clearInterval(iv);
-    setLoadStep(LOADING_STEPS.length - 1);
 
+    let workspaceJSON: WorkspaceResult = {};
     if (result.ok) {
-      saveFromAI(result.text, data);
-    } else {
-      saveFallback(data);
+      try {
+        const clean = result.text.replace(/```(?:json)?/g, "").trim();
+        workspaceJSON = JSON.parse(clean) as WorkspaceResult;
+      } catch {
+        workspaceJSON = {};
+      }
     }
+
+    const tasksCount = workspaceJSON.tasks?.length ?? 0;
+    const risksCount = Array.isArray(workspaceJSON.risks) ? workspaceJSON.risks.length : 0;
+    const insightsCount = workspaceJSON.insights?.length ?? 0;
+    setGeneratedData({ tasks: tasksCount, risks: risksCount, insights: insightsCount });
+
+    saveWorkspace(workspaceJSON);
 
     const user = getUser();
     if (user?.email) {
       sendWelcomeEmail(user.name || "Founder", user.email).catch(() => {});
     }
 
-    setTimeout(() => setAppPhase("done"), 900);
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, 8000 - elapsed);
+
+    setTimeout(() => {
+      setLoadStep(LOADING_MESSAGES.length - 1);
+      setTimeout(() => setAppPhase("done"), 800);
+    }, remaining);
   };
 
+  // ── LOADING SCREEN ──────────────────────────────────────────────────────────
   if (appPhase === "loading") {
-    const pct = Math.round(((loadStep + 1) / LOADING_STEPS.length) * 100);
+    const pct = Math.round(((loadStep + 1) / LOADING_MESSAGES.length) * 100);
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center">
-        <Logo size={24} className="mb-12 text-white" />
-        <p className="text-[13px] text-white/40">Costruisco il tuo workspace...</p>
+        <Logo size={24} className="mb-14 text-white" />
+        <p className="text-[11px] uppercase tracking-[0.22em] text-white/25">Generazione workspace</p>
         <AnimatePresence mode="wait">
           <motion.p
             key={loadStep}
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.3 }}
-            className="mt-3 text-[16px] font-medium text-white"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35 }}
+            className="mt-4 font-display text-[20px] font-semibold text-white"
           >
-            {LOADING_STEPS[loadStep]}
+            {LOADING_MESSAGES[loadStep]}
           </motion.p>
         </AnimatePresence>
-        <div className="mt-8 h-1 w-full max-w-sm overflow-hidden rounded-full bg-white/10">
+        <div className="mt-10 h-0.5 w-full max-w-sm overflow-hidden rounded-full bg-white/10">
           <motion.div
-            className="h-full rounded-full bg-white"
+            className="h-full rounded-full"
+            style={{ backgroundColor: "#7B2FFF" }}
             animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           />
         </div>
       </div>
     );
   }
 
+  // ── DONE SCREEN ─────────────────────────────────────────────────────────────
   if (appPhase === "done") {
+    const items = [
+      "Blueprint completo del tuo progetto",
+      "Roadmap 30/60/90 giorni personalizzata",
+      generatedData.tasks > 0
+        ? `${generatedData.tasks} task prioritari specifici per te`
+        : "Task prioritari specifici per te",
+      "Budget Guard calibrato sul tuo budget",
+      generatedData.risks > 0
+        ? `${generatedData.risks} rischi identificati con soluzioni`
+        : "Rischi identificati con soluzioni",
+      generatedData.insights > 0
+        ? `${generatedData.insights} insight strategici`
+        : "Insight strategici sul tuo progetto",
+    ];
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-center">
-        <Logo size={24} className="mb-12 text-white" />
+        <Logo size={24} className="mb-14 text-white" />
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="max-w-md"
         >
-          <p className="text-[22px] font-semibold text-white">Il tuo workspace e pronto.</p>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/50">
-            Hai tutto quello che ti serve per iniziare a costruire.
-            Blueprint, roadmap 30/60/90, task prioritari e Budget Guard sono gia configurati.
+          <p className="font-display text-[26px] font-bold text-white">Il tuo workspace e pronto.</p>
+          <p className="mt-3 text-[14px] leading-relaxed text-white/45">
+            Abbiamo costruito insieme tutto quello che ti serve per iniziare a costruire.
+          </p>
+          <div className="mt-7 space-y-2 text-left">
+            {items.map((item, i) => (
+              <div key={i} className="flex items-center gap-2.5 text-[13.5px] text-white/65">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: "#7B2FFF" }} />
+                {item}
+              </div>
+            ))}
+          </div>
+          <p className="mt-7 text-[13px] text-white/30">
+            Il tuo Co-founder AI ti aspetta per iniziare a costruire.
           </p>
           <button
             onClick={() => router.push("/app")}
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[14px] font-semibold text-black hover:opacity-90 active:scale-95"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-[15px] font-semibold text-black hover:opacity-90 active:scale-95 transition"
           >
-            Apri workspace
+            Apri il tuo workspace
           </button>
         </motion.div>
       </div>
     );
   }
 
-  const suggestions = STEP_SUGGESTIONS[step] ?? [];
-
+  // ── CHAT SCREEN ─────────────────────────────────────────────────────────────
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-black">
       {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/8 px-6">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.08] px-6">
         <Logo size={18} className="text-white" />
         <div className="flex items-center gap-3">
-          <span className="text-[12px] text-white/35">
-            Passo {Math.min(step + 1, TOTAL_STEPS)} di {TOTAL_STEPS}
-          </span>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/25">
+              Fase {conversationPhase} di 4
+            </p>
+            <p className="text-[12px] font-medium text-white/50">{PHASE_LABELS[conversationPhase]}</p>
+          </div>
           <div className="flex gap-1">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            {[1, 2, 3, 4].map((p) => (
               <div
-                key={i}
-                className={`h-1 w-5 rounded-full transition-colors ${i < step + 1 ? "bg-brand" : "bg-white/15"}`}
+                key={p}
+                className={`h-1 rounded-full transition-all duration-500 ${
+                  p <= conversationPhase ? "w-7 bg-brand" : "w-3 bg-white/15"
+                }`}
               />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Body: split layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT: chat 60% */}
-        <div className="flex w-full flex-col overflow-hidden md:w-[60%]">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-6">
-            <div className="mx-auto max-w-[600px] space-y-4">
-              {msgs.map((m, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+      {/* Chat body */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-8">
+          <div className="mx-auto max-w-[720px] space-y-5">
+            {displayMsgs.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
+                    m.role === "user"
+                      ? "text-white"
+                      : "border border-white/[0.08] bg-[#111118] text-white/88"
+                  }`}
+                  style={{
+                    whiteSpace: "pre-wrap",
+                    backgroundColor: m.role === "user" ? "#7B2FFF" : undefined,
+                  }}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
-                      m.role === "user"
-                        ? "text-white"
-                        : "border border-brand/20 bg-white/[0.05] text-white/90"
-                    }`}
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      backgroundColor: m.role === "user" ? "#7B2FFF" : undefined,
-                    }}
-                  >
-                    {m.text}
-                  </div>
-                </motion.div>
-              ))}
-              <div ref={bottomRef} />
-            </div>
-          </div>
+                  {m.text}
+                </div>
+              </motion.div>
+            ))}
 
-          {/* Suggestions pills */}
-          {suggestions.length > 0 && (
-            <div className="shrink-0 px-4 pb-2">
-              <div className="mx-auto max-w-[600px]">
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => send(s)}
-                      className="rounded-full border border-white/20 bg-white/5 px-3.5 py-1.5 text-[13px] text-white/70 transition hover:border-brand/50 hover:bg-brand/15 hover:text-white"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+            {isSending && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <ThinkingDots />
+              </motion.div>
+            )}
 
-          {/* Input area */}
-          <div className="shrink-0 border-t border-white/8 px-4 py-4">
-            <div className="mx-auto max-w-[600px]">
-              {step === 3 ? (
-                /* Budget slider */
-                <div className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-5">
-                  <BudgetSlider value={budgetVal} onChange={setBudgetVal} />
-                  <button
-                    onClick={confirmBudget}
-                    className="mt-5 w-full rounded-xl py-3 text-[14px] font-semibold text-white transition active:scale-95"
-                    style={{ backgroundColor: "#7B2FFF" }}
-                  >
-                    Conferma budget
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-end gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-2">
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Scrivi la tua risposta..."
-                    rows={1}
-                    autoFocus
-                    className="flex-1 resize-none bg-transparent py-1.5 text-[14px] text-white outline-none placeholder:text-white/30"
-                    style={{ maxHeight: "140px" }}
-                  />
-                  <button
-                    onClick={() => send()}
-                    disabled={!input.trim()}
-                    className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition active:scale-95 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: input.trim() ? "#7B2FFF" : undefined }}
-                  >
-                    <ArrowUp className={`h-4 w-4 ${input.trim() ? "text-white" : "text-white/25"}`} />
-                  </button>
-                </div>
-              )}
-            </div>
+            <div ref={bottomRef} />
           </div>
         </div>
 
-        {/* RIGHT: preview 40% — hidden on mobile */}
-        <div className="hidden w-[40%] overflow-y-auto border-l border-white/8 bg-white/[0.02] px-6 py-6 md:block">
-          <PreviewPanel collected={collected} step={step} />
+        {/* Pill suggestions */}
+        {pills.length > 0 && !isSending && (
+          <div className="shrink-0 px-4 pb-2">
+            <div className="mx-auto max-w-[720px]">
+              <div className="flex flex-wrap gap-2">
+                {pills.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => { setPills([]); sendMessage(p, history, displayMsgs, budgetConfirmed); }}
+                    className="rounded-full border border-white/20 bg-white/5 px-3.5 py-1.5 text-[13px] text-white/65 transition hover:border-brand/50 hover:bg-brand/15 hover:text-white"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Input */}
+        <div className="shrink-0 border-t border-white/[0.08] px-4 py-4">
+          <div className="mx-auto max-w-[720px]">
+            {showBudgetSlider && !isSending ? (
+              <BudgetSlider value={budgetVal} onChange={setBudgetVal} onConfirm={confirmBudget} />
+            ) : (
+              <div className="flex items-end gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-2">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    isSending
+                      ? "Il Co-founder AI sta pensando..."
+                      : "Scrivi la tua risposta..."
+                  }
+                  disabled={isSending}
+                  rows={1}
+                  autoFocus
+                  className="flex-1 resize-none bg-transparent py-1.5 text-[14px] text-white outline-none placeholder:text-white/30 disabled:cursor-not-allowed"
+                  style={{ maxHeight: "140px" }}
+                />
+                <button
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim() || isSending}
+                  className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition active:scale-95 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor:
+                      input.trim() && !isSending ? "#7B2FFF" : undefined,
+                  }}
+                >
+                  <ArrowUp
+                    className={`h-4 w-4 ${
+                      input.trim() && !isSending ? "text-white" : "text-white/25"
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function saveFromAI(jsonText: string, data: CollectedData) {
+// ── Workspace persistence ────────────────────────────────────────────────────
+
+function saveWorkspace(ai: WorkspaceResult): void {
   try {
-    // Strip markdown code blocks if present
-    const clean = jsonText.replace(/```(?:json)?/g, "").trim();
-    const ai = JSON.parse(clean);
     const user = getUser();
-    const budgetStr = data.budgetAmount < 2000 ? "< 500€" :
-      data.budgetAmount < 10000 ? "500–2.000€" :
-      data.budgetAmount < 50000 ? "2.000–10.000€" : "10.000–50.000€";
+    const projectName = ai.name || "Il mio progetto";
+    const budgetAmount = typeof ai.budget === "number" && ai.budget > 0 ? ai.budget : 5000;
+
+    const budgetStr =
+      budgetAmount < 2000
+        ? "< 500€"
+        : budgetAmount < 10000
+        ? "500–2.000€"
+        : budgetAmount < 50000
+        ? "2.000–10.000€"
+        : "> 50.000€";
+
     const onboarding = {
-      idea: data.projectName,
-      sector: data.projectType || "SaaS",
-      type: data.projectType || "SaaS",
-      target: ai.blueprint?.target ?? "Founder e imprenditori italiani",
+      idea: projectName,
+      sector: ai.type || "SaaS",
+      type: ai.type || "SaaS",
+      target: ai.blueprint?.target ?? "Founder e imprenditori",
       location: "Italia",
       budget: budgetStr,
-      stage: data.phase || "Solo un'idea",
-      team: data.team || "Solo founder",
-      goal: data.goal || "Validare l'idea",
+      stage: ai.phase || "Solo un'idea",
+      team: ai.team || "Solo founder",
+      goal: "Validare l'idea",
     };
+
     const base = generateProject(onboarding);
-    base.name = ai.name ?? data.projectName ?? base.name;
+    base.name = projectName;
     base.onelinePitch = ai.description ?? base.onelinePitch;
-    base.budgetAvailable = data.budgetAmount || base.budgetAvailable;
+    base.budgetAvailable = budgetAmount;
 
     if (ai.blueprint) {
       base.blueprint = {
@@ -597,82 +619,104 @@ function saveFromAI(jsonText: string, data: CollectedData) {
 
     if (ai.roadmap) {
       const phases: RoadmapPhase[] = (["30", "60", "90"] as const).map((key) => {
-        const items: string[] = ai.roadmap[key] ?? [];
+        const items: string[] = ai.roadmap?.[key] ?? [];
         return {
           key,
           label: key === "30" ? "Primo mese" : key === "60" ? "Secondo mese" : "Terzo mese",
-          items: items.map((t: string) => ({ t, done: false })),
+          items: items.map((t) => ({ t, done: false })),
         };
       });
       base.roadmap = phases;
     }
 
     if (ai.tasks?.length) {
-      base.tasks = (ai.tasks as { title: string; priority: string; duration: string; output: string }[])
-        .slice(0, 3)
-        .map((t, i) => ({
-          ...base.tasks[i] ?? base.tasks[0],
-          title: t.title,
-          priority: (["Alta", "Media", "Bassa"].includes(t.priority) ? t.priority : "Media") as "Alta" | "Media" | "Bassa",
-          area: "MVP" as TaskArea,
-          duration: t.duration ?? "2 ore",
-          output: t.output ?? "Completato",
-          id: `ai-task-${i}`,
-          status: "Da fare" as const,
-          description: t.title,
-          why: "Task generato dall'AI in base al tuo obiettivo.",
-          steps: [],
-        }));
+      base.tasks = ai.tasks.slice(0, 5).map((t, i) => ({
+        ...(base.tasks[i] ?? base.tasks[0]),
+        title: t.title,
+        description: t.description ?? t.title,
+        priority: (["Alta", "Media", "Bassa"].includes(t.priority)
+          ? t.priority
+          : "Media") as "Alta" | "Media" | "Bassa",
+        area: "MVP" as TaskArea,
+        duration: t.duration ?? "2 ore",
+        output: t.output ?? "Completato",
+        id: `ai-task-${i}`,
+        status: "Da fare" as const,
+        why: "Task generato dall'AI in base alla conversazione.",
+        steps: [],
+      }));
+    }
+
+    if (ai.risks?.length) {
+      base.founderAlerts = ai.risks.slice(0, 5).map((r, i) => {
+        if (typeof r === "string") {
+          return {
+            id: `ai-risk-${i}`,
+            title: r,
+            severity: "Media" as const,
+            area: "Strategia",
+            explanation: r,
+            advice: "Monitora e mitiga questo rischio.",
+            resolved: false,
+          };
+        }
+        return {
+          id: `ai-risk-${i}`,
+          title: r.title ?? `Rischio ${i + 1}`,
+          severity: (["Alta", "Media", "Bassa"].includes(r.severity ?? "")
+            ? r.severity
+            : "Media") as "Alta" | "Media" | "Bassa",
+          area: "Strategia",
+          explanation: r.description ?? "",
+          advice: r.mitigation ?? "",
+          resolved: false,
+        };
+      });
     }
 
     if (ai.healthScore) (base as Record<string, unknown>).healthScore = ai.healthScore;
 
     saveProject(base);
+
     if (user) {
       setUser({
-        ...user, onboarded: true,
+        ...user,
+        onboarded: true,
         project: {
-          name: base.name, idea: onboarding.idea, sector: onboarding.sector,
-          location: onboarding.location, target: onboarding.target, budget: onboarding.budget,
-          stage: onboarding.stage, team: onboarding.team, goal: onboarding.goal, type: onboarding.type,
+          name: base.name,
+          idea: onboarding.idea,
+          sector: onboarding.sector,
+          location: onboarding.location,
+          target: onboarding.target,
+          budget: onboarding.budget,
+          stage: onboarding.stage,
+          team: onboarding.team,
+          goal: onboarding.goal,
+          type: onboarding.type,
         },
       });
     }
+
     try { localStorage.setItem("pilot-onboarding-complete", "1"); } catch {}
   } catch {
-    saveFallback(data);
+    const user = getUser();
+    const onboarding = {
+      idea: ai.name || "Il mio progetto",
+      sector: "SaaS",
+      type: "SaaS",
+      target: "Founder italiani",
+      location: "Italia",
+      budget: "500–2.000€",
+      stage: "Solo un'idea",
+      team: "Solo founder",
+      goal: "Validare l'idea",
+    };
+    const project = generateProject(onboarding);
+    project.name = ai.name || "Il mio progetto";
+    saveProject(project);
+    if (user) {
+      setUser({ ...user, onboarded: true, project: { name: project.name, idea: onboarding.idea, sector: onboarding.sector, location: onboarding.location, target: onboarding.target, budget: onboarding.budget, stage: onboarding.stage, team: onboarding.team, goal: onboarding.goal, type: onboarding.type } });
+    }
+    try { localStorage.setItem("pilot-onboarding-complete", "1"); } catch {}
   }
-}
-
-function saveFallback(data: CollectedData) {
-  const user = getUser();
-  const budgetStr = data.budgetAmount < 2000 ? "< 500€" :
-    data.budgetAmount < 10000 ? "500–2.000€" :
-    data.budgetAmount < 50000 ? "2.000–10.000€" : "10.000–50.000€";
-  const onboarding = {
-    idea: data.projectName,
-    sector: data.projectType || "SaaS",
-    type: data.projectType || "SaaS",
-    target: "Founder e imprenditori italiani",
-    location: "Italia",
-    budget: budgetStr,
-    stage: data.phase || "Solo un'idea",
-    team: data.team || "Solo founder",
-    goal: data.goal || "Validare l'idea",
-  };
-  const project = generateProject(onboarding);
-  project.name = data.projectName || project.name;
-  project.budgetAvailable = data.budgetAmount || project.budgetAvailable;
-  saveProject(project);
-  if (user) {
-    setUser({
-      ...user, onboarded: true,
-      project: {
-        name: project.name, idea: onboarding.idea, sector: onboarding.sector,
-        location: onboarding.location, target: onboarding.target, budget: onboarding.budget,
-        stage: onboarding.stage, team: onboarding.team, goal: onboarding.goal, type: onboarding.type,
-      },
-    });
-  }
-  try { localStorage.setItem("pilot-onboarding-complete", "1"); } catch {}
 }
