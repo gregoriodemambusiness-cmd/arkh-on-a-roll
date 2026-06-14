@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Lightbulb, Palette, FileText, Coins, Wrench, Map, ListChecks,
   ShieldCheck, Megaphone, Presentation, Banknote, Users, Receipt, Wallet, Files,
   Plug, Sparkles, ShieldAlert, BadgeCheck, LifeBuoy, Settings, ChevronLeft,
-  Compass, Share2, Zap,
+  Compass, Share2, Zap, Grid,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const sections: { label?: string; items: { to: string; label: string; icon: Reac
       { to: "/app/blueprint", label: "Blueprint", icon: FileText },
       { to: "/app/business-model", label: "Business Model", icon: Coins },
       { to: "/app/mvp-builder", label: "MVP Builder", icon: Wrench },
+      { to: "/app/mvp-canvas", label: "MVP Canvas", icon: Grid },
       { to: "/app/roadmap", label: "Roadmap", icon: Map },
       { to: "/app/task-center", label: "Task Center", icon: ListChecks },
     ],

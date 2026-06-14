@@ -89,7 +89,7 @@ export default function ReferralPage() {
   const savings = Math.round(basePlan * (pct / 100) * 10) / 10;
 
   const whatsappText = encodeURIComponent(
-    `Sto usando Pilot AI per costruire la mia startup in modo organizzato — se ti iscrivi con il mio link ottieni 30 giorni gratis e io sconto sul piano 🚀\n\n${refLink}`,
+    `Sto usando Pilot AI per costruire la mia startup in modo organizzato — se ti iscrivi con il mio link ottieni 30 giorni gratis e io sconto sul piano.\n\n${refLink}`,
   );
   const linkedinText = encodeURIComponent(
     `Sto costruendo la mia startup con Pilot AI — ti permette di passare dall'idea al primo cliente con metodo. Se ti iscrivi con il mio link hai 30 giorni gratis: ${refLink}`,
@@ -215,7 +215,7 @@ export default function ReferralPage() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-[13px] font-medium hover:bg-accent"
           >
-            <span className="text-base">💬</span> WhatsApp
+            WhatsApp
           </a>
           <a
             href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(refLink)}&summary=${linkedinText}`}
@@ -223,7 +223,7 @@ export default function ReferralPage() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-[13px] font-medium hover:bg-accent"
           >
-            <span className="text-base">🔗</span> LinkedIn
+            LinkedIn
           </a>
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Sto costruendo la mia startup con @PilotAI — ottieni 30 giorni gratis con il mio link: ${refLink}`)}`}

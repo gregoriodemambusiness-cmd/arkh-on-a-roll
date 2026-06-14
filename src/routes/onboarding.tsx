@@ -17,38 +17,38 @@ const ONBOARDING_KEY = "pilot-onboarding-complete";
 
 // ── Step definitions ─────────────────────────────────────────────────────────
 
-type Option = { emoji: string; label: string; value: string; desc?: string };
+type Option = { label: string; value: string; desc?: string };
 
 const PHASES: Option[] = [
-  { emoji: "🌱", label: "Ho un'idea", value: "Solo un'idea", desc: "Non ho ancora iniziato" },
-  { emoji: "🔍", label: "Sto validando", value: "Sto validando", desc: "Sto testando il mercato" },
-  { emoji: "🏗️", label: "Sto costruendo", value: "Sto costruendo", desc: "Ho già un MVP" },
-  { emoji: "🚀", label: "Sto lanciando", value: "Già live", desc: "Sono quasi live" },
-  { emoji: "📈", label: "Sono già live", value: "Già live+", desc: "Voglio crescere" },
+  { label: "Ho un'idea", value: "Solo un'idea", desc: "Non ho ancora iniziato" },
+  { label: "Sto validando", value: "Sto validando", desc: "Sto testando il mercato" },
+  { label: "Sto costruendo", value: "Sto costruendo", desc: "Ho già un MVP" },
+  { label: "Sto lanciando", value: "Già live", desc: "Sono quasi live" },
+  { label: "Sono già live", value: "Già live+", desc: "Voglio crescere" },
 ];
 
 const BUDGETS: Option[] = [
-  { emoji: "💸", label: "Meno di €1.000", value: "< 500€" },
-  { emoji: "💰", label: "€1.000 – €5.000", value: "500–2.000€" },
-  { emoji: "💎", label: "€5.000 – €20.000", value: "2.000–10.000€" },
-  { emoji: "🏦", label: "Più di €20.000", value: "10.000–50.000€" },
-  { emoji: "❓", label: "Non lo so ancora", value: "< 500€" },
+  { label: "Meno di €1.000", value: "< 500€" },
+  { label: "€1.000 – €5.000", value: "500–2.000€" },
+  { label: "€5.000 – €20.000", value: "2.000–10.000€" },
+  { label: "Più di €20.000", value: "10.000–50.000€" },
+  { label: "Non lo so ancora", value: "< 500€" },
 ];
 
 const TEAMS: Option[] = [
-  { emoji: "👤", label: "Solo", value: "Solo founder", desc: "Sono il solo founder" },
-  { emoji: "👥", label: "Con un co-founder", value: "2–3 persone", desc: "Siamo in 2" },
-  { emoji: "👨‍👩‍👧", label: "Piccolo team", value: "2–3 persone", desc: "2-5 persone" },
-  { emoji: "🏢", label: "Team strutturato", value: "4+ persone", desc: "5+ persone" },
+  { label: "Solo", value: "Solo founder", desc: "Sono il solo founder" },
+  { label: "Con un co-founder", value: "2–3 persone", desc: "Siamo in 2" },
+  { label: "Piccolo team", value: "2–3 persone", desc: "2-5 persone" },
+  { label: "Team strutturato", value: "4+ persone", desc: "5+ persone" },
 ];
 
 const GOALS: Option[] = [
-  { emoji: "✅", label: "Validare l'idea", value: "Validare l'idea", desc: "Con utenti reali" },
-  { emoji: "🏗️", label: "Costruire il MVP", value: "Lanciare un MVP", desc: "Primo prototipo" },
-  { emoji: "💰", label: "Trovare clienti", value: "Trovare i primi clienti", desc: "Primi paganti" },
-  { emoji: "📣", label: "Lanciare pubblicamente", value: "Lanciare pubblicamente", desc: "Go-to-market" },
-  { emoji: "💼", label: "Trovare investitori", value: "Cercare investitori", desc: "Pitch e funding" },
-  { emoji: "⚙️", label: "Automatizzare", value: "Automatizzare processi", desc: "Processi interni" },
+  { label: "Validare l'idea", value: "Validare l'idea", desc: "Con utenti reali" },
+  { label: "Costruire il MVP", value: "Lanciare un MVP", desc: "Primo prototipo" },
+  { label: "Trovare clienti", value: "Trovare i primi clienti", desc: "Primi paganti" },
+  { label: "Lanciare pubblicamente", value: "Lanciare pubblicamente", desc: "Go-to-market" },
+  { label: "Trovare investitori", value: "Cercare investitori", desc: "Pitch e funding" },
+  { label: "Automatizzare", value: "Automatizzare processi", desc: "Processi interni" },
 ];
 
 // ── Task presets by goal ──────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ const LOADING_MESSAGES = [
   "Genero la roadmap 30/60/90…",
   "Preparo i tuoi primi task…",
   "Calibro il Budget Guard…",
-  "Il tuo workspace è pronto! 🎉",
+  "Il tuo workspace è pronto.",
 ];
 
 // ── Plan cards ────────────────────────────────────────────────────────────────
@@ -285,7 +285,7 @@ Obiettivo 30 giorni: ${form.goal}`;
               <Rocket className="h-7 w-7" />
             </div>
             <h1 className="font-display text-3xl font-semibold tracking-tight">
-              Il tuo workspace è pronto, {form.name.split(" ")[0]}! 🎉
+              Il tuo workspace è pronto, {form.name.split(" ")[0]}.
             </h1>
             <p className="mt-2 text-[15px] text-muted-foreground">
               Hai attivato il Free Trial — 14 giorni per esplorare Pilot.
@@ -573,7 +573,6 @@ function OptionCards({
                 : "border-border bg-surface hover:border-foreground/30 hover:bg-accent",
             )}
           >
-            <span className="text-2xl">{opt.emoji}</span>
             <div className="min-w-0 flex-1">
               <div className={cn("text-[14px] font-medium", active && "text-brand")}>{opt.label}</div>
               {opt.desc && <div className="mt-0.5 text-[11.5px] text-muted-foreground">{opt.desc}</div>}

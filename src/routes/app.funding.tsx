@@ -70,7 +70,7 @@ Target di mercato:
 ${target || "Descrivere il segmento di mercato target."}
 
 --- REQUISITI SODDISFATTI ---
-${opp.req.map((r) => `☐ ${r}`).join("\n")}
+${opp.req.map((r) => `[ ] ${r}`).join("\n")}
 
 --- NOTE ---
 Personalizza questa bozza con i tuoi dati reali prima dell'invio.

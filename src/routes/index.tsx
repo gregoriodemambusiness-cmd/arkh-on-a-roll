@@ -433,7 +433,7 @@ function DashboardPreview() {
           <PreviewCard className="col-span-6 md:col-span-4" title="Budget Guard" icon={Wallet}>
             <div className="text-[12px] text-muted-foreground">Budget disponibile</div>
             <div className="font-display text-2xl font-semibold">€ 3.200</div>
-            <div className="mt-1 rounded-md bg-warning/15 px-2 py-1 text-[11.5px] text-warning">⚠ MVP stimato: € 5.800 — riduci scope</div>
+            <div className="mt-1 rounded-md bg-warning/15 px-2 py-1 text-[11.5px] text-warning">MVP stimato: € 5.800 — riduci scope</div>
           </PreviewCard>
           <PreviewCard className="col-span-12 md:col-span-7" title="Roadmap 30/60/90" icon={Map}>
             <div className="grid grid-cols-3 gap-2">
@@ -524,7 +524,7 @@ const BENTO_CARDS: BentoCardDef[] = [
     desc: "Monitora il budget, allerta sui rischi prima che accadano. Niente sorprese a fine MVP.",
     extra: (
       <div className="mt-3 rounded-lg border border-warning/30 bg-warning/8 px-2.5 py-2 text-[12px] text-warning">
-        ⚠ MVP stimato eccede il budget di € 2.600
+        MVP stimato eccede il budget di € 2.600
       </div>
     ),
   },

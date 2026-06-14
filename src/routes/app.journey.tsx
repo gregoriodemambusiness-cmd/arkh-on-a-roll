@@ -11,7 +11,6 @@ import NextLink from "next/link";
 const BIG_STEPS = [
   {
     id: "s1",
-    emoji: "💡",
     title: "Idea & Validazione",
     color: "brand",
     cta: "Apri Idea Lab",
@@ -26,7 +25,6 @@ const BIG_STEPS = [
   },
   {
     id: "s2",
-    emoji: "📋",
     title: "Blueprint & Strategia",
     color: "violet",
     cta: "Apri Blueprint",
@@ -41,7 +39,6 @@ const BIG_STEPS = [
   },
   {
     id: "s3",
-    emoji: "🏗️",
     title: "MVP & Prodotto",
     color: "emerald",
     cta: "Apri MVP Builder",
@@ -56,7 +53,6 @@ const BIG_STEPS = [
   },
   {
     id: "s4",
-    emoji: "🚀",
     title: "Lancio & Go-to-Market",
     color: "amber",
     cta: "Apri Marketing",
@@ -71,7 +67,6 @@ const BIG_STEPS = [
   },
   {
     id: "s5",
-    emoji: "💰",
     title: "Primi Clienti & Revenue",
     color: "rose",
     cta: "Apri Pitch Room",
@@ -86,7 +81,6 @@ const BIG_STEPS = [
   },
   {
     id: "s6",
-    emoji: "📈",
     title: "Crescita & Scale",
     color: "sky",
     cta: "Apri Roadmap",
@@ -103,7 +97,6 @@ const BIG_STEPS = [
 
 type BigStep = {
   id: string;
-  emoji: string;
   title: string;
   color: string;
   cta: string;
@@ -283,7 +276,7 @@ export default function JourneyPage() {
                         exit={{ scale: 0, opacity: 0 }}
                         className={cn("flex h-10 w-10 items-center justify-center rounded-full", color.glow, color.ring, "ring-2")}
                       >
-                        <span className="text-lg">🎉</span>
+                        <Check className="h-5 w-5 text-white" />
                       </motion.div>
                     ) : done ? (
                       <motion.div
@@ -305,7 +298,7 @@ export default function JourneyPage() {
                         transition={{ duration: 2, repeat: Infinity }}
                         className={cn("flex h-10 w-10 items-center justify-center rounded-full border-2", color.ring, color.bg)}
                       >
-                        <span className="text-lg">{step.emoji}</span>
+                        <span className="text-[11px] font-bold text-foreground">{step.id.replace("s", "")}</span>
                       </motion.div>
                     )}
                   </AnimatePresence>

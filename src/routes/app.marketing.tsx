@@ -39,9 +39,9 @@ const EMAIL_VARIANTS = [
 
 const SOCIAL_VARIANTS = [
   (name: string, desc: string, target: string, _problem: string, _solution: string) =>
-    `🚀 ${name} è ${desc}.\n\nSe sei ${target} e vuoi muoverti con metodo, questo è per te.\n\nProvalo gratis →`,
+    `${name} è ${desc}.\n\nSe sei ${target} e vuoi muoverti con metodo, questo è per te.\n\nProvalo gratis →`,
   (name: string, _desc: string, _target: string, problem: string, solution: string) =>
-    `💡 ${problem}?\n\n${name} ti aiuta con: ${solution}.\n\nLinkato in bio 👇`,
+    `${problem}?\n\n${name} ti aiuta con: ${solution}.\n\nLinkato in bio.`,
   (name: string, desc: string, _target: string, _problem: string, _solution: string) =>
     `Abbiamo costruito ${name} — ${desc}.\n\nPrima beta aperta. Unisciti ora →`,
 ];
@@ -64,15 +64,15 @@ export default function Marketing() {
   const positioning = `${name} è per ${target} che affrontano ${problem}. A differenza di strumenti generici, ${name} offre ${solution}.`;
 
   const ads = [
-    { channel: "📱 IG / TikTok", copy: `Smetti di affrontare ${problem} senza metodo — usa ${name}.` },
-    { channel: "🔍 Google", copy: `${name} — Soluzione per ${target}` },
-    { channel: "💼 LinkedIn", copy: `Per ${target} seri che vogliono risolvere ${problem}.` },
+    { channel: "IG / TikTok", copy: `Smetti di affrontare ${problem} senza metodo — usa ${name}.` },
+    { channel: "Google", copy: `${name} — Soluzione per ${target}` },
+    { channel: "LinkedIn", copy: `Per ${target} seri che vogliono risolvere ${problem}.` },
   ];
 
   const emailSequence = [
-    { label: "📨 Cold email v1", text: `Salve,\n\nHo notato che molti ${target} affrontano ${problem}.\n\n${name} risolve esattamente questo con ${solution}.\n\nHa 15 minuti per una call?\n\nGrazie` },
-    { label: "📨 Follow-up (3 giorni)", text: `Solo per verificare se ha ricevuto la mia email su ${name}.\n\n${desc}.\n\nÈ disponibile questa settimana?` },
-    { label: "📨 Case study breve", text: `Abbiamo aiutato ${target} a risolvere ${problem} con ${name}.\n\nRisultato: ${solution}.\n\nVuole vedere come?` },
+    { label: "Cold email v1", text: `Salve,\n\nHo notato che molti ${target} affrontano ${problem}.\n\n${name} risolve esattamente questo con ${solution}.\n\nHa 15 minuti per una call?\n\nGrazie` },
+    { label: "Follow-up (3 giorni)", text: `Solo per verificare se ha ricevuto la mia email su ${name}.\n\n${desc}.\n\nÈ disponibile questa settimana?` },
+    { label: "Case study breve", text: `Abbiamo aiutato ${target} a risolvere ${problem} con ${name}.\n\nRisultato: ${solution}.\n\nVuole vedere come?` },
   ];
 
   const weeks = [

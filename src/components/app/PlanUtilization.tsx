@@ -182,7 +182,7 @@ export function PlanUtilization() {
           animate={{ scale: 1, opacity: 1 }}
           className="mt-4 rounded-xl border border-success/30 bg-success/10 p-3 text-center text-[13px] text-success"
         >
-          🎉 Stai usando il 100% del piano — sei un founder serio!
+          Stai usando il 100% del piano — sei un founder serio!
         </motion.div>
       )}
     </div>

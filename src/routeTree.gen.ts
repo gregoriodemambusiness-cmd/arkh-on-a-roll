@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
+import { Route as AppMvpCanvasRouteImport } from './routes/app.mvp-canvas'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
@@ -42,6 +44,16 @@ import { Route as AppBudgetGuardRouteImport } from './routes/app.budget-guard'
 import { Route as AppBrandStudioRouteImport } from './routes/app.brand-studio'
 import { Route as AppBlueprintRouteImport } from './routes/app.blueprint'
 
+const OnboardingChatRoute = OnboardingChatRouteImport.update({
+  id: '/onboarding-chat',
+  path: '/onboarding-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppMvpCanvasRoute = AppMvpCanvasRouteImport.update({
+  id: '/mvp-canvas',
+  path: '/mvp-canvas',
+  getParentRoute: () => AppRoute,
+} as any)
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
@@ -209,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/onboarding-chat': typeof OnboardingChatRoute
   '/payment-cancel': typeof PaymentCancelRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
@@ -226,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/mvp-canvas': typeof AppMvpCanvasRoute
   '/app/pitch': typeof AppPitchRoute
   '/app/plan': typeof AppPlanRoute
   '/app/projects': typeof AppProjectsRoute
@@ -242,6 +256,7 @@ export interface FileRoutesByTo {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/onboarding-chat': typeof OnboardingChatRoute
   '/payment-cancel': typeof PaymentCancelRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
@@ -259,6 +274,7 @@ export interface FileRoutesByTo {
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/mvp-canvas': typeof AppMvpCanvasRoute
   '/app/pitch': typeof AppPitchRoute
   '/app/plan': typeof AppPlanRoute
   '/app/projects': typeof AppProjectsRoute
@@ -277,6 +293,7 @@ export interface FileRoutesById {
   '/enterprise': typeof EnterpriseRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/onboarding-chat': typeof OnboardingChatRoute
   '/payment-cancel': typeof PaymentCancelRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/signup': typeof SignupRoute
@@ -294,6 +311,7 @@ export interface FileRoutesById {
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/mvp-builder': typeof AppMvpBuilderRoute
+  '/app/mvp-canvas': typeof AppMvpCanvasRoute
   '/app/pitch': typeof AppPitchRoute
   '/app/plan': typeof AppPlanRoute
   '/app/projects': typeof AppProjectsRoute
@@ -313,6 +331,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/onboarding-chat'
     | '/payment-cancel'
     | '/payment-success'
     | '/signup'
@@ -330,6 +349,7 @@ export interface FileRouteTypes {
     | '/app/integrations'
     | '/app/marketing'
     | '/app/mvp-builder'
+    | '/app/mvp-canvas'
     | '/app/pitch'
     | '/app/plan'
     | '/app/projects'
@@ -346,6 +366,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/onboarding-chat'
     | '/payment-cancel'
     | '/payment-success'
     | '/signup'
@@ -363,6 +384,7 @@ export interface FileRouteTypes {
     | '/app/integrations'
     | '/app/marketing'
     | '/app/mvp-builder'
+    | '/app/mvp-canvas'
     | '/app/pitch'
     | '/app/plan'
     | '/app/projects'
@@ -380,6 +402,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/login'
     | '/onboarding'
+    | '/onboarding-chat'
     | '/payment-cancel'
     | '/payment-success'
     | '/signup'
@@ -397,6 +420,7 @@ export interface FileRouteTypes {
     | '/app/integrations'
     | '/app/marketing'
     | '/app/mvp-builder'
+    | '/app/mvp-canvas'
     | '/app/pitch'
     | '/app/plan'
     | '/app/projects'
@@ -415,6 +439,7 @@ export interface RootRouteChildren {
   EnterpriseRoute: typeof EnterpriseRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  OnboardingChatRoute: typeof OnboardingChatRoute
   PaymentCancelRoute: typeof PaymentCancelRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   SignupRoute: typeof SignupRoute
@@ -449,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/payment-cancel'
       fullPath: '/payment-cancel'
       preLoaderRoute: typeof PaymentCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding-chat': {
+      id: '/onboarding-chat'
+      path: '/onboarding-chat'
+      fullPath: '/onboarding-chat'
+      preLoaderRoute: typeof OnboardingChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -563,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMvpBuilderRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/mvp-canvas': {
+      id: '/app/mvp-canvas'
+      path: '/mvp-canvas'
+      fullPath: '/app/mvp-canvas'
+      preLoaderRoute: typeof AppMvpCanvasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/marketing': {
       id: '/app/marketing'
       path: '/marketing'
@@ -664,6 +703,7 @@ interface AppRouteChildren {
   AppIntegrationsRoute: typeof AppIntegrationsRoute
   AppMarketingRoute: typeof AppMarketingRoute
   AppMvpBuilderRoute: typeof AppMvpBuilderRoute
+  AppMvpCanvasRoute: typeof AppMvpCanvasRoute
   AppPitchRoute: typeof AppPitchRoute
   AppPlanRoute: typeof AppPlanRoute
   AppProjectsRoute: typeof AppProjectsRoute
@@ -690,6 +730,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIntegrationsRoute: AppIntegrationsRoute,
   AppMarketingRoute: AppMarketingRoute,
   AppMvpBuilderRoute: AppMvpBuilderRoute,
+  AppMvpCanvasRoute: AppMvpCanvasRoute,
   AppPitchRoute: AppPitchRoute,
   AppPlanRoute: AppPlanRoute,
   AppProjectsRoute: AppProjectsRoute,
@@ -710,6 +751,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnterpriseRoute: EnterpriseRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  OnboardingChatRoute: OnboardingChatRoute,
   PaymentCancelRoute: PaymentCancelRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   SignupRoute: SignupRoute,

@@ -1,23 +1,25 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Send, RotateCcw, Sparkles, Loader2, AlertTriangle, Zap } from "lucide-react";
+import {
+  RotateCcw, Sparkles, Loader2, AlertTriangle, Zap,
+  Plus, ArrowUp, Paperclip, Globe, BarChart2, Layout, Plug, Presentation,
+} from "lucide-react";
 import { useProject, computeHealth, analyzeBudget, formatEuro } from "@/lib/projectStore";
 import { useUser } from "@/lib/mockAuth";
 import { askCoFounder } from "@/lib/claude.functions";
 import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
 import { cn } from "@/lib/utils";
+import { ContextualPreview } from "@/components/app/ContextualPreview";
 
 type Msg = { role: "user" | "ai"; text: string };
 
-const QUICK = [
-  "Cosa devo fare oggi?",
-  "Il mio MVP è troppo grande?",
-  "Come valido questa idea?",
-  "Come riduco i costi?",
-  "Genera un pitch breve",
-  "Analizza il mio budget",
-  "Qual è il mio prossimo step?",
-  "Migliora la roadmap",
+const PLUS_ITEMS = [
+  { icon: Paperclip, label: "Allega file", action: "file" },
+  { icon: Globe, label: "Cerca nel web", action: "web" },
+  { icon: BarChart2, label: "Analizza il mio progetto", action: "analyze" },
+  { icon: Layout, label: "Crea MVP Canvas", action: "canvas" },
+  { icon: Plug, label: "Connetti integrazione", action: "integrations" },
+  { icon: Presentation, label: "Genera pitch", action: "pitch" },
 ];
 
 function TypingDots() {
@@ -34,6 +36,40 @@ function TypingDots() {
   );
 }
 
+function PlusMenu({
+  onClose,
+  onAction,
+}: {
+  onClose: () => void;
+  onAction: (action: string) => void;
+}) {
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as Element).closest("[data-plus-menu]")) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      data-plus-menu
+      className="mb-2 overflow-hidden rounded-xl border border-border bg-card shadow-elegant"
+    >
+      {PLUS_ITEMS.map(({ icon: Icon, label, action }) => (
+        <button
+          key={label}
+          onClick={() => { onAction(action); onClose(); }}
+          className="flex w-full items-center gap-3 px-3.5 py-2.5 text-[13px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        >
+          <Icon className="h-4 w-4 shrink-0" />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function CoFounder() {
   const proj = useProject();
   const user = useUser();
@@ -43,11 +79,12 @@ export default function CoFounder() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
 
-  // Load persisted messages or show welcome
   useEffect(() => {
     if (!proj || initialized.current) return;
     initialized.current = true;
@@ -62,27 +99,24 @@ export default function CoFounder() {
     const { score } = computeHealth(proj);
     setMsgs([{
       role: "ai",
-      text: `Ciao! Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
+      text: `Benvenuto in Pilot. Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
     }]);
   }, [proj]);
 
-  // Persist messages
   useEffect(() => {
     if (!proj || !initialized.current || msgs.length === 0) return;
     localStorage.setItem(`pilot-chat-${proj.id}`, JSON.stringify(msgs));
   }, [msgs, proj]);
 
-  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, loading]);
 
-  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [input]);
 
   const buildContext = () => {
@@ -112,11 +146,10 @@ export default function CoFounder() {
     if (!proj) return;
     localStorage.removeItem(`pilot-chat-${proj.id}`);
     const { score } = computeHealth(proj);
-    const welcome: Msg = {
+    setMsgs([{
       role: "ai",
-      text: `Ciao! Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
-    };
-    setMsgs([welcome]);
+      text: `Benvenuto in Pilot. Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
+    }]);
   };
 
   const send = async (text?: string) => {
@@ -142,9 +175,34 @@ export default function CoFounder() {
     }]);
   };
 
+  const handlePlusAction = (action: string) => {
+    switch (action) {
+      case "file":
+        fileInputRef.current?.click();
+        break;
+      case "web":
+        setInput("[WEBSEARCH] ");
+        textareaRef.current?.focus();
+        break;
+      case "analyze":
+        send("Fai una analisi completa del mio progetto con punti di forza, criticita e piano d'azione dettagliato");
+        break;
+      case "canvas":
+        send("Aiutami a costruire il mio MVP Canvas passo per passo");
+        break;
+      case "integrations":
+        window.location.href = "/app/integrations";
+        break;
+      case "pitch":
+        send("Genera un pitch completo del mio progetto per investitori");
+        break;
+    }
+  };
+
   const usageExhausted = !usage.allowed;
   const usageWarning = usage.limit < 999999 && usage.remaining <= Math.ceil(usage.limit * 0.2);
   const initials = user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "U";
+  const canSend = !loading && !usageExhausted && !!input.trim();
 
   return (
     <div
@@ -194,30 +252,33 @@ export default function CoFounder() {
       <div className="flex-1 overflow-y-auto px-4 py-5 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
           {msgs.map((m, i) => (
-            <div
-              key={i}
-              className={cn("flex items-end gap-2.5", m.role === "user" ? "flex-row-reverse" : "flex-row")}
-            >
-              {m.role === "ai" ? (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">
-                  P
+            <div key={i}>
+              <div className={cn("flex items-end gap-2.5", m.role === "user" ? "flex-row-reverse" : "flex-row")}>
+                {m.role === "ai" ? (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">
+                    P
+                  </div>
+                ) : (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+                    {initials}
+                  </div>
+                )}
+                <div
+                  className={cn("max-w-[75%] px-4 py-3 text-[14px] leading-relaxed", m.role === "ai" && "bg-card")}
+                  style={{
+                    borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                    backgroundColor: m.role === "user" ? "#7B2FFF" : undefined,
+                    color: m.role === "user" ? "#fff" : undefined,
+                    border: m.role === "ai" ? "1px solid rgba(123,47,255,0.2)" : "none",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {m.text}
                 </div>
-              ) : (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-                  {initials}
-                </div>
-              )}
-              <div
-                className={cn("max-w-[75%] px-4 py-3 text-[14px] leading-relaxed", m.role === "ai" && "bg-card")}
-                style={{
-                  borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  backgroundColor: m.role === "user" ? "#7B2FFF" : undefined,
-                  color: m.role === "user" ? "#fff" : undefined,
-                  border: m.role === "ai" ? "1px solid rgba(123,47,255,0.2)" : "none",
-                }}
-              >
-                {m.text}
               </div>
+              {m.role === "ai" && i > 0 && msgs[i - 1]?.role === "user" && (
+                <ContextualPreview userMessage={msgs[i - 1].text} />
+              )}
             </div>
           ))}
           {loading && (
@@ -227,10 +288,7 @@ export default function CoFounder() {
               </div>
               <div
                 className="bg-card px-4 py-3"
-                style={{
-                  borderRadius: "18px 18px 18px 4px",
-                  border: "1px solid rgba(123,47,255,0.2)",
-                }}
+                style={{ borderRadius: "18px 18px 18px 4px", border: "1px solid rgba(123,47,255,0.2)" }}
               >
                 <TypingDots />
               </div>
@@ -241,21 +299,21 @@ export default function CoFounder() {
       </div>
 
       {/* Input area */}
-      <div className="shrink-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-sm md:px-6">
-        <div className="mx-auto max-w-3xl space-y-2.5">
-          <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
-            {QUICK.map((q) => (
-              <button
-                key={q}
-                onClick={() => send(q)}
-                disabled={loading || usageExhausted}
-                className="shrink-0 rounded-full border border-border bg-surface px-3 py-1.5 text-[12px] text-muted-foreground transition hover:border-brand hover:text-foreground disabled:opacity-40"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface px-3 py-2.5 transition focus-within:border-brand">
+      <div className="shrink-0 border-t border-border/20 bg-background/95 px-4 py-3 backdrop-blur-sm md:px-6">
+        <div className="mx-auto max-w-3xl" data-plus-menu>
+          {menuOpen && (
+            <PlusMenu onClose={() => setMenuOpen(false)} onAction={handlePlusAction} />
+          )}
+          <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface px-2.5 py-2 transition focus-within:border-brand/60">
+            {/* Plus button */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-surface text-muted-foreground transition hover:border-brand/40 hover:bg-accent hover:text-foreground"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+
+            {/* Textarea */}
             <textarea
               ref={textareaRef}
               value={input}
@@ -266,22 +324,32 @@ export default function CoFounder() {
               placeholder={
                 usageExhausted
                   ? "Limite chiamate raggiunto — upgrada il piano"
-                  : "Chiedi al tuo co-founder… (Invio per inviare, Shift+Invio a capo)"
+                  : "Scrivi un messaggio..."
               }
               disabled={usageExhausted}
               rows={1}
-              className="flex-1 resize-none bg-transparent py-0.5 text-[14px] outline-none placeholder:text-muted-foreground disabled:opacity-50"
-              style={{ maxHeight: "128px" }}
+              className="flex-1 resize-none bg-transparent py-1.5 text-[14px] outline-none placeholder:text-muted-foreground disabled:opacity-50"
+              style={{ maxHeight: "200px" }}
             />
+
+            {/* Send button */}
             <button
               onClick={() => send()}
-              disabled={loading || usageExhausted || !input.trim()}
-              className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition hover:opacity-90 disabled:opacity-40"
+              disabled={!canSend}
+              className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white transition active:scale-95 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: canSend ? "#7B2FFF" : undefined,
+              }}
             >
-              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              {loading
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                : <ArrowUp className={cn("h-4 w-4", canSend ? "text-white" : "text-muted-foreground/40")} />
+              }
             </button>
           </div>
         </div>
+        {/* Hidden file input */}
+        <input ref={fileInputRef} type="file" className="hidden" />
       </div>
     </div>
   );

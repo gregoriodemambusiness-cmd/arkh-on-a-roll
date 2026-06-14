@@ -102,7 +102,7 @@ export default function VerifyPage() {
       setStatus("success");
       setTimeout(() => {
         sessionStorage.setItem("pilot-welcome", "1");
-        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat";
         router.push(dest);
       }, 900);
     } catch (e: unknown) {
@@ -168,7 +168,7 @@ export default function VerifyPage() {
                 <button
                   onClick={() => {
                     sessionStorage.setItem("pilot-welcome", "1");
-                    const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+                    const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat";
                     router.push(dest);
                   }}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90"
