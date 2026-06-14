@@ -6,6 +6,7 @@ import { Card, CardHeader, PageHeader, Button } from "@/components/app/ui";
 import { useUser, setUser, updateUser } from "@/lib/mockAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useProject } from "@/lib/projectStore";
+import { exportProjectPDF } from "@/lib/exportPDF";
 
 export default SettingsPage;
 
@@ -315,8 +316,11 @@ function SettingsPage() {
                   <Button variant="secondary" onClick={action}>Esporta</Button>
                 </div>
               ))}
+              <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2.5 text-[13.5px]">
+                <span>Esporta Blueprint (PDF)</span>
+                <Button variant="secondary" onClick={() => project && exportProjectPDF(project, user)}>Esporta</Button>
+              </div>
               {[
-                "Esporta Blueprint (PDF)",
                 "Esporta Pitch (PDF)",
                 "Esporta dati account",
               ].map((label) => (

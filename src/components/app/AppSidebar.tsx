@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Lightbulb, Palette, FileText, Coins, Wrench, Map, ListChecks,
   ShieldCheck, Megaphone, Presentation, Banknote, Users, Receipt, Wallet, Files,
   Plug, Sparkles, ShieldAlert, BadgeCheck, LifeBuoy, Settings, ChevronLeft,
-  Compass, Share2, Zap, Grid,
+  Compass, Share2, Zap, Grid, Network,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,7 @@ const sections: { label?: string; items: { to: string; label: string; icon: Reac
     items: [
       { to: "/app/plan", label: "Plan & Usage", icon: BadgeCheck },
       { to: "/app/referral", label: "Referral", icon: Share2 },
+      { to: "/app/connect", label: "Connect", icon: Network },
       { to: "/app/support", label: "Support", icon: LifeBuoy },
       { to: "/app/settings", label: "Settings", icon: Settings },
     ],

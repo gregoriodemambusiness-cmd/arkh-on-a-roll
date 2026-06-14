@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Copy, Check, Grid } from "lucide-react";
+import { Loader2, Sparkles, Copy, Check, Grid, FileDown } from "lucide-react";
 import { Card, PageHeader, Button } from "@/components/app/ui";
 import { useProject } from "@/lib/projectStore";
 import { useUser } from "@/lib/mockAuth";
 import { askCoFounder } from "@/lib/claude.functions";
 import { checkUsageLimit, incrementUsage } from "@/lib/claudeAI";
+import { exportProjectPDF } from "@/lib/exportPDF";
 
 const CANVAS_SECTIONS = [
   { key: "problema", label: "Problema", desc: "Quale problema risolvi" },
@@ -135,7 +136,14 @@ export default function MVPCanvas() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-[13px] font-medium text-muted-foreground hover:border-foreground/20 hover:text-foreground"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copiato" : "Esporta"}
+              {copied ? "Copiato" : "Copia"}
+            </button>
+            <button
+              onClick={() => exportProjectPDF(proj, user)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-[13px] font-medium text-muted-foreground hover:border-foreground/20 hover:text-foreground"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              Esporta PDF
             </button>
             <button
               onClick={generateAll}

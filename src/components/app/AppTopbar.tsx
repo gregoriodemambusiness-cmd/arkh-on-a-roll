@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useTheme } from "@/lib/theme";
-import { Bell, LogOut, Moon, Search, Sun, X, LayoutDashboard, Compass, Map, Wrench, CheckSquare, DollarSign, ShieldAlert, Lightbulb, Presentation, Megaphone, Wallet, BarChart3, Palette, FileText, Puzzle, Users, Share2, Settings, LifeBuoy, CreditCard } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sun, X, LayoutDashboard, Compass, Map, Wrench, CheckSquare, DollarSign, ShieldAlert, Lightbulb, Presentation, Megaphone, Wallet, BarChart3, Palette, FileText, Puzzle, Users, Share2, Settings, LifeBuoy, CreditCard, ArrowRight } from "lucide-react";
 import { useUser } from "@/lib/mockAuth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/billing";
 import { Link, useNavigate } from "@/lib/nextCompat";
 import { signOutAndClear } from "@/lib/authSync";
+import { useProject, computeHealth, analyzeBudget } from "@/lib/projectStore";
 
 const PAGES = [
   { label: "Dashboard", to: "/app", icon: LayoutDashboard },
@@ -33,11 +34,9 @@ const PAGES = [
   { label: "Support", to: "/app/support", icon: LifeBuoy },
 ];
 
-const NOTIFICATIONS = [
-  { id: "1", text: "Task completato: valida la tua idea", time: "2 min fa", unread: true },
-  { id: "2", text: "Budget Guard: spese vicino al limite", time: "1 ora fa", unread: true },
-  { id: "3", text: "Co-founder AI: nuovo suggerimento", time: "Oggi", unread: false },
-];
+type AppNotif = { id: string; text: string; to: string };
+
+const NOTIF_READ_KEY = "pilot-notif-read";
 
 function CommandPalette({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
@@ -110,8 +109,19 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-function NotificationPanel({ onClose }: { onClose: () => void }) {
+function NotificationPanel({
+  notifications,
+  readIds,
+  onMarkRead,
+  onClose,
+}: {
+  notifications: AppNotif[];
+  readIds: Set<string>;
+  onMarkRead: (id: string) => void;
+  onClose: () => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
+  const nav = useNavigate();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -120,6 +130,11 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
+
+  const markAll = () => {
+    notifications.forEach((n) => onMarkRead(n.id));
+    onClose();
+  };
 
   return (
     <div
@@ -130,22 +145,34 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
         <h3 className="text-[13.5px] font-semibold">Notifiche</h3>
       </div>
       <div className="divide-y divide-border">
-        {NOTIFICATIONS.map((n) => (
-          <div key={n.id} className={`flex items-start gap-3 px-4 py-3 ${n.unread ? "bg-brand/3" : ""}`}>
-            {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand" />}
-            {!n.unread && <span className="mt-1.5 h-2 w-2 shrink-0" />}
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px]">{n.text}</p>
-              <p className="text-[11.5px] text-muted-foreground">{n.time}</p>
+        {notifications.length === 0 && (
+          <p className="px-4 py-4 text-[13px] text-muted-foreground">Nessuna notifica.</p>
+        )}
+        {notifications.map((n) => {
+          const unread = !readIds.has(n.id);
+          return (
+            <div key={n.id} className={`flex items-start gap-3 px-4 py-3 ${unread ? "bg-brand/3" : ""}`}>
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${unread ? "bg-brand" : ""}`} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px]">{n.text}</p>
+              </div>
+              <button
+                onClick={() => { onMarkRead(n.id); nav({ to: n.to }); onClose(); }}
+                className="shrink-0 inline-flex items-center gap-0.5 rounded-lg bg-brand/10 px-2 py-1 text-[11.5px] font-medium text-brand hover:bg-brand/20"
+              >
+                Vai <ArrowRight className="h-3 w-3" />
+              </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div className="border-t border-border px-4 py-2.5">
-        <button onClick={onClose} className="text-[12.5px] text-brand hover:underline">
-          Segna tutte come lette
-        </button>
-      </div>
+      {notifications.length > 0 && (
+        <div className="border-t border-border px-4 py-2.5">
+          <button onClick={markAll} className="text-[12.5px] text-brand hover:underline">
+            Segna tutte come lette
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -153,9 +180,16 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
 export function AppTopbar({ title }: { title?: string }) {
   const { theme, toggle } = useTheme();
   const user = useUser();
+  const proj = useProject();
   const nav = useNavigate();
   const [showPalette, setShowPalette] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(NOTIF_READ_KEY);
+      return new Set(raw ? JSON.parse(raw) : []);
+    } catch { return new Set(); }
+  });
 
   const initials = (user?.name || "AR").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   const plan = (user?.plan ?? "free") as PlanId;
@@ -166,7 +200,42 @@ export function AppTopbar({ title }: { title?: string }) {
   const planBadge = trialDaysLeft !== null ? `Trial — ${trialDaysLeft}g` : planName;
   const logout = async () => { await signOutAndClear(); nav({ to: "/login" }); };
 
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
+  const notifications = useMemo<AppNotif[]>(() => {
+    const list: AppNotif[] = [];
+    if (trialDaysLeft !== null && trialDaysLeft <= 7) {
+      list.push({ id: "trial", text: `Il tuo trial scade tra ${trialDaysLeft} giorni. Passa a Starter per continuare.`, to: "/app/plan" });
+    }
+    if (proj) {
+      const openTasks = proj.tasks.filter((t) => t.status !== "Completato");
+      if (openTasks.length > 3) {
+        list.push({ id: "tasks", text: `Hai ${openTasks.length} task aperti. Inizia dal piu urgente oggi.`, to: "/app/task-center" });
+      }
+      const health = computeHealth(proj).score;
+      if (health < 40) {
+        list.push({ id: "health", text: `Health Score critico: ${health}/100. Completa il Blueprint per migliorarlo.`, to: "/app/founder-guard" });
+      }
+      const interviews = (proj as { interviews?: unknown[] }).interviews;
+      if (!interviews || interviews.length === 0) {
+        list.push({ id: "interviews", text: "Nessuna intervista utente registrata. La validazione e il passo piu critico.", to: "/app/validation" });
+      }
+      const budget = analyzeBudget(proj);
+      if (budget.delta < 0) {
+        list.push({ id: "budget", text: "Il budget non copre l'MVP pianificato. Riduci le feature o aumenta il budget.", to: "/app/budget-guard" });
+      }
+    }
+    return list;
+  }, [proj, trialDaysLeft]);
+
+  const markRead = (id: string) => {
+    setReadIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      try { localStorage.setItem(NOTIF_READ_KEY, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+
+  const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
 
   // CMD+K / CTRL+K shortcut
   useEffect(() => {
@@ -231,7 +300,14 @@ export function AppTopbar({ title }: { title?: string }) {
                 </span>
               )}
             </button>
-            {showNotif && <NotificationPanel onClose={() => setShowNotif(false)} />}
+            {showNotif && (
+              <NotificationPanel
+                notifications={notifications}
+                readIds={readIds}
+                onMarkRead={markRead}
+                onClose={() => setShowNotif(false)}
+              />
+            )}
           </div>
 
           <button

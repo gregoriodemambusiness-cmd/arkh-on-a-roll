@@ -1,5 +1,18 @@
 import type { Metadata } from "next";
+import { Orbitron, Inter } from "next/font/google";
 import "../src/styles.css";
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Pilot",
@@ -9,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body className={`${orbitron.variable} ${inter.variable}`}>{children}</body>
     </html>
   );
 }
