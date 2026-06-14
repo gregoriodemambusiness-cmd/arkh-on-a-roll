@@ -160,6 +160,10 @@ export function AppTopbar({ title }: { title?: string }) {
   const initials = (user?.name || "AR").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   const plan = (user?.plan ?? "free") as PlanId;
   const planName = PLAN_BY_ID[plan]?.name ?? "Free";
+  const trialDaysLeft = plan === "free" && user?.trialEndsAt
+    ? Math.max(0, Math.ceil((user.trialEndsAt - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
+  const planBadge = trialDaysLeft !== null ? `Trial — ${trialDaysLeft}g` : planName;
   const logout = async () => { await signOutAndClear(); nav({ to: "/login" }); };
 
   const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
@@ -202,7 +206,7 @@ export function AppTopbar({ title }: { title?: string }) {
             className="hidden items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground sm:inline-flex"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-            {planName}
+            {planBadge}
           </Link>
 
           <button

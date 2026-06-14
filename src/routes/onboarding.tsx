@@ -167,9 +167,15 @@ export default function OnboardingPage() {
     if (step !== 5) return;
 
     // Start Claude generation concurrently with the animation
-    const claudePrompt = `Genera un progetto startup per: "${form.projectName}".
-Fase: ${form.phase}. Budget: ${form.budget}. Team: ${form.team}. Obiettivo 30gg: ${form.goal}.
-Settore: SaaS/Tech. Target: founder italiani. Lingua: italiano.`;
+    const claudePrompt = `Sei un esperto di startup. Basandoti ESCLUSIVAMENTE su questi dati reali forniti dall'utente, genera un piano operativo. NON inventare dati. Se un campo non può essere determinato dai dati forniti, lascialo vuoto.
+
+Dati reali utente:
+Nome progetto: ${form.projectName}
+Nome fondatore: ${form.name}
+Fase attuale: ${form.phase}
+Budget disponibile: ${form.budget}
+Composizione team: ${form.team}
+Obiettivo 30 giorni: ${form.goal}`;
     let claudeResultText: string | null = null;
     const claudePromise = generateProjectFromOnboarding(claudePrompt).then((r) => {
       if (r.ok) claudeResultText = r.text;

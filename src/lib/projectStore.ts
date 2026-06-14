@@ -194,24 +194,34 @@ export type HealthBreakdown = { key: string; value: number }[];
 
 export function computeHealth(p: Project): { score: number; breakdown: HealthBreakdown } {
   const bp = p.blueprint;
-  const len = (s: string) => Math.min(100, Math.round((s?.trim().length || 0) / 1.2));
-  const idea = len(bp.problem) * 0.4 + len(bp.solution) * 0.6;
-  const target = len(bp.target);
-  const bm = len(bp.businessModel) * 0.6 + len(bp.valueProp) * 0.4;
+  const hasProblem = !!bp?.problem?.trim();
+  const hasSolution = !!bp?.solution?.trim();
+  const hasTarget = !!bp?.target?.trim();
+  const hasBudget = (p.budgetAvailable ?? 0) > 0;
+  const hasTasks = p.tasks.length > 0;
+  const interviews = p.validation?.interviews?.length ?? 0;
   const completed = p.tasks.filter((t) => t.status === "Completato").length;
   const totalTasks = Math.max(1, p.tasks.length);
-  const mvp = Math.min(100, (completed / totalTasks) * 100 * 0.5 + 30);
-  const marketing = len(bp.goToMarket);
-  const validation = Math.min(100, completed * 12 + 20);
+
+  const score =
+    (p.name?.trim() ? 20 : 0) +
+    (hasProblem ? 15 : 0) +
+    (hasSolution ? 15 : 0) +
+    (hasTarget ? 15 : 0) +
+    (hasBudget ? 10 : 0) +
+    (hasTasks ? 10 : 0) +
+    (interviews > 0 ? 15 : 0);
+
+  const len = (s: string) => Math.min(100, Math.round((s?.trim().length || 0) / 1.5));
   const breakdown: HealthBreakdown = [
-    { key: "Idea", value: Math.round(idea) },
-    { key: "Target", value: Math.round(target) },
-    { key: "Business Model", value: Math.round(bm) },
-    { key: "MVP", value: Math.round(mvp) },
-    { key: "Marketing", value: Math.round(marketing) },
-    { key: "Validation", value: Math.round(validation) },
+    { key: "Idea", value: (hasProblem ? 50 : 0) + (hasSolution ? 50 : 0) },
+    { key: "Target", value: hasTarget ? 100 : 0 },
+    { key: "Business Model", value: bp?.businessModel?.trim() ? len(bp.businessModel) : 0 },
+    { key: "MVP", value: hasTasks ? Math.min(100, Math.round(30 + (completed / totalTasks) * 70)) : 0 },
+    { key: "Marketing", value: bp?.goToMarket?.trim() ? len(bp.goToMarket) : 0 },
+    { key: "Validation", value: interviews > 0 ? Math.min(100, interviews * 20) : 0 },
   ];
-  const score = Math.round(breakdown.reduce((a, b) => a + b.value, 0) / breakdown.length);
+
   return { score, breakdown };
 }
 

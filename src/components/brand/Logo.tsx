@@ -24,7 +24,7 @@ export function Logo({ className, size = 28, withWordmark = true }: LogoProps) {
     <div className={cn("inline-flex items-center gap-2 text-black dark:text-white", className)}>
       <LogoMark size={size} />
       {withWordmark && (
-        <span className="font-display text-[15px] font-semibold tracking-tight">
+        <span className="font-display text-[14px] font-bold uppercase tracking-[0.1em]">
           Pilot
         </span>
       )}

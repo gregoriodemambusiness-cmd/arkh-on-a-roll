@@ -16,7 +16,7 @@ const items = [
 export function AppDock() {
   const pathname = usePathname();
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-4 md:hidden">
       <div className="pointer-events-auto glass-strong flex items-center gap-1 rounded-2xl px-2 py-1.5 shadow-elegant">
         {items.map((it) => {
           const Icon = it.icon;

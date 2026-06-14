@@ -134,3 +134,75 @@ export async function addEnterpriseLead(lead: EnterpriseLead): Promise<void> {
       : [],
   });
 }
+
+// ── 4. Pipeline Studio ─────────────────────────────────────────────────────
+export type StudioLead = {
+  contact: string;
+  email: string;
+  company: string;
+  sector: string;
+  role: string;
+  process: string;
+  timeLost: string;
+  teamSize: string;
+  budget: string;
+  urgency: string;
+  message: string;
+};
+
+function parseBudgetEstimate(budget: string): number {
+  const nums = budget.match(/\d[\d.,]*/g);
+  if (!nums?.length) return 299;
+  const values = nums.map((n) => Number(n.replace(/\./g, "").replace(",", ".")));
+  return Math.max(...values.filter((v) => !Number.isNaN(v)), 299);
+}
+
+export async function addStudioLead(lead: StudioLead): Promise<void> {
+  const notion = getClient();
+  const notes = [
+    "Source: PILOT Studio",
+    lead.sector ? `Settore: ${lead.sector}` : "",
+    lead.role ? `Ruolo: ${lead.role}` : "",
+    `Processo: ${lead.process}`,
+    lead.timeLost ? `Tempo perso: ${lead.timeLost}` : "",
+    lead.teamSize ? `Persone coinvolte: ${lead.teamSize}` : "",
+    lead.budget ? `Budget indicativo: ${lead.budget}` : "",
+    `Urgenza: ${lead.urgency}`,
+    lead.message ? `Messaggio: ${lead.message}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  await notion.pages.create({
+    parent: { database_id: DB_ENTERPRISE },
+    properties: {
+      Azienda: {
+        title: [{ text: { content: lead.company || "Studio lead" } }],
+      },
+      Contatto: {
+        rich_text: [{ text: { content: lead.contact } }],
+      },
+      Email: {
+        email: lead.email,
+      },
+      "Valore Stimato (€)": {
+        number: parseBudgetEstimate(lead.budget),
+      },
+      Stato: {
+        select: { name: "Nuovo Lead" },
+      },
+      "Data Contatto": {
+        date: { start: new Date().toISOString().split("T")[0] },
+      },
+    },
+    children: [
+      {
+        object: "block",
+        type: "paragraph",
+        paragraph: {
+          rich_text: [{ type: "text", text: { content: notes } }],
+        },
+      },
+    ],
+  });
+}

@@ -51,7 +51,7 @@ function BlueprintPage() {
     setAiResult(null);
     incrementUsage();
     const result = await askCoFounder(
-      "Analizza questo blueprint e dai 3 suggerimenti specifici per migliorare value proposition e target. Sii diretto, no markdown, max 200 parole.",
+      "Analizza SOLO i dati reali forniti. Se un dato non è disponibile di' esplicitamente che non è ancora nel progetto. Struttura la risposta con: 1. Situazione attuale del blueprint basata sui dati reali. 2. Almeno 3 punti critici numerati su value proposition e target. 3. Piano d'azione step by step con almeno 5 step concreti per migliorare il blueprint. 4. Una sola azione da fare nelle prossime 2 ore. Minimo 250 parole. Testo plain, no markdown, no asterischi.",
       [
         `Progetto: ${proj.name}`,
         `Problema: ${local.problem}`,

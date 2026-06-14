@@ -42,7 +42,7 @@ function Roadmap() {
     }).join("\n");
 
     const result = await askCoFounder(
-      "Analizza questa roadmap e dimmi cosa è realistico, cosa va spostato, e qual è la priorità corretta per i prossimi 30 giorni. Testo plain, no markdown, max 200 parole.",
+      "Analizza SOLO i dati reali forniti. Se un dato non è disponibile di' esplicitamente che non è ancora nel progetto. Struttura la risposta con: 1. Situazione attuale della roadmap basata sui dati reali. 2. Almeno 3 punti critici numerati su cosa è realistico e cosa non lo è. 3. Piano d'azione step by step con almeno 5 step concreti per i prossimi 30 giorni. 4. Una sola azione da fare nelle prossime 2 ore. Minimo 250 parole. Testo plain, no markdown, no asterischi.",
       [
         `Progetto: ${proj.name}`,
         `Fase attuale: ${proj.onboarding.stage}`,

@@ -13,11 +13,25 @@ import {
   Send,
   Rocket,
   X,
+  CalendarDays,
+  TrendingUp,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import { useUser } from "@/lib/mockAuth";
+import { useState, useEffect } from "react";
+import { useUser, type MockUser } from "@/lib/mockAuth";
 import { AppTutorial } from "@/components/app/AppTutorial";
+
+function displayName(user: MockUser | null): string {
+  if (!user) return "Founder";
+  const name = user.name || "";
+  if (name.includes("@")) {
+    const local = name.split("@")[0];
+    const first = local.split(/[.\-_]/)[0];
+    return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  }
+  return name.split(" ")[0] || "Founder";
+}
 import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
 import { useProject, computeHealth, analyzeBudget, completeTask, formatEuro } from "@/lib/projectStore";
 import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
@@ -100,6 +114,21 @@ function Dashboard() {
   const nav = useNavigate();
   const [confirm, setConfirm] = useState<PaidPlanId | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [lastAiMessage, setLastAiMessage] = useState<string | null>(null);
+  const [hasJourneyProgress, setHasJourneyProgress] = useState(false);
+
+  useEffect(() => {
+    if (!proj) return;
+    try {
+      const msgs = JSON.parse(localStorage.getItem(`pilot-chat-${proj.id}`) || "[]") as { role: string; text: string }[];
+      const last = msgs.filter((m) => m.role === "ai").pop();
+      if (last) setLastAiMessage(last.text);
+    } catch {}
+    try {
+      const s = JSON.parse(localStorage.getItem("pilot-journey") || "{}");
+      setHasJourneyProgress(Object.values(s.miniSteps || {}).some(Boolean));
+    } catch {}
+  }, [proj?.id]);
 
   if (!proj) return <EmptyState />;
 
@@ -115,7 +144,7 @@ function Dashboard() {
     <div className="mx-auto max-w-7xl space-y-6">
       <AppTutorial />
       <PageHeader
-        title={`Buongiorno, ${user?.name?.split(" ")[0] || "Founder"}.`}
+        title={`Buongiorno, ${displayName(user)}.`}
         subtitle={`Progetto: ${proj.name} — ${proj.onboarding.stage || "Validazione"}`}
         action={
           <div className="flex gap-2">
@@ -135,7 +164,7 @@ function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-card md:flex-row md:items-center"
+          className="relative flex flex-col items-start justify-between gap-2 rounded-2xl border border-border/60 bg-card/90 px-4 py-3 shadow-card opacity-90 md:flex-row md:items-center"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-lg bg-brand/10 p-2 text-brand">
@@ -182,10 +211,27 @@ function Dashboard() {
         <Card className="col-span-12 lg:col-span-7" data-tutorial="today-focus">
           <CardHeader
             title="Today Focus"
-            subtitle={`${todo.length} task prioritari per oggi`}
+            subtitle={proj.tasks.length > 0 ? `${todo.length} task prioritari per oggi` : "Inizia il tuo percorso"}
             icon={Target}
-            action={<Pill tone="brand">{todo.length} task</Pill>}
+            action={proj.tasks.length > 0 ? <Pill tone="brand">{todo.length} task</Pill> : undefined}
           />
+          {proj.tasks.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <div className="rounded-2xl bg-muted p-4 text-muted-foreground">
+                <CalendarDays className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-[14px] font-medium">Nessun task ancora</p>
+                <p className="mt-1 text-[12.5px] text-muted-foreground">Genera i tuoi primi task con il Co-founder AI</p>
+              </div>
+              <button
+                onClick={() => nav({ to: "/app/co-founder" })}
+                className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-white hover:opacity-90"
+              >
+                Chiedi all'AI →
+              </button>
+            </div>
+          ) : (
           <div className="space-y-2.5">
             <AnimatePresence initial={false}>
               {todo.length === 0 && (
@@ -219,6 +265,7 @@ function Dashboard() {
               ))}
             </AnimatePresence>
           </div>
+          )}
         </Card>
 
         {/* Startup Health */}
@@ -295,30 +342,30 @@ function Dashboard() {
               </Link>
             }
           />
+          {proj.budgetAvailable === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <div className="rounded-2xl bg-muted p-4 text-muted-foreground"><Wallet className="h-6 w-6" /></div>
+              <div>
+                <p className="text-[14px] font-medium">Budget non impostato</p>
+                <p className="mt-1 text-[12.5px] text-muted-foreground">Inserisci il tuo budget per attivare il Budget Guard</p>
+              </div>
+              <Link to="/app/budget-guard" className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-white hover:opacity-90">
+                Imposta budget →
+              </Link>
+            </div>
+          ) : (
+          <>
           <div className="grid grid-cols-2 gap-3 text-[13px]">
             <Stat label="Disponibile" value={formatEuro(budget.available)} />
-            <Stat
-              label="MVP stimato"
-              value={formatEuro(budget.estimated)}
-              tone={budget.risk === "alto" ? "warn" : undefined}
-            />
-            <Stat
-              label="Differenza"
-              value={`${budget.delta >= 0 ? "+" : ""}${formatEuro(Math.abs(budget.delta)).replace("€ ", "€ ")}`}
-              tone={budget.delta < 0 ? "warn" : undefined}
-            />
-            <Stat
-              label="Rischio"
-              value={budget.risk.toUpperCase()}
-              tone={budget.risk !== "basso" ? "warn" : undefined}
-            />
+            <Stat label="MVP stimato" value={formatEuro(budget.estimated)} tone={budget.risk === "alto" ? "warn" : undefined} />
+            <Stat label="Differenza" value={`${budget.delta >= 0 ? "+" : ""}${formatEuro(Math.abs(budget.delta)).replace("€ ", "€ ")}`} tone={budget.delta < 0 ? "warn" : undefined} />
+            <Stat label="Rischio" value={budget.risk.toUpperCase()} tone={budget.risk !== "basso" ? "warn" : undefined} />
           </div>
-          <div
-            className={`mt-3 rounded-lg border p-3 text-[12.5px] ${budget.risk === "alto" ? "border-warning/30 bg-warning/10 text-warning" : budget.risk === "medio" ? "border-brand/30 bg-brand/5 text-foreground" : "border-success/30 bg-success/10 text-success"}`}
-          >
-            <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />
-            {budget.recommendation}
+          <div className={`mt-3 rounded-lg border p-3 text-[12.5px] ${budget.risk === "alto" ? "border-warning/30 bg-warning/10 text-warning" : budget.risk === "medio" ? "border-brand/30 bg-brand/5 text-foreground" : "border-success/30 bg-success/10 text-success"}`}>
+            <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />{budget.recommendation}
           </div>
+          </>
+          )}
         </Card>
 
         {/* Roadmap */}
@@ -364,14 +411,19 @@ function Dashboard() {
         {/* Co-founder AI */}
         <Card className="col-span-12 lg:col-span-4">
           <CardHeader title="Co-founder AI" icon={Sparkles} subtitle="Conosce il tuo progetto" />
-          <div className="space-y-2 text-[13px]">
-            <div className="rounded-xl bg-muted px-3 py-2">Cosa devo fare oggi?</div>
-            <div className="rounded-xl border border-brand/30 bg-brand/5 px-3 py-2">
-              {nextAction
-                ? `Inizia da: ${nextAction.title}. Tempo stimato ${nextAction.duration}.`
-                : "Pianifica la fase 60 giorni: scegli 3 funzioni essenziali e costruisci la beta privata."}
+          {lastAiMessage ? (
+            <div className="space-y-2 text-[13px]">
+              <div className="rounded-xl bg-muted px-3 py-2 text-[12px] text-muted-foreground">Ultima risposta AI</div>
+              <div className="line-clamp-4 rounded-xl border border-brand/30 bg-brand/5 px-3 py-2.5 text-[13px] leading-relaxed">
+                {lastAiMessage}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 py-4 text-center">
+              <MessageSquare className="h-6 w-6 text-muted-foreground" />
+              <p className="text-[13px] text-muted-foreground">Nessuna conversazione ancora</p>
+            </div>
+          )}
           <Link
             to="/app/co-founder"
             className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-[13px] text-muted-foreground hover:border-brand hover:text-foreground"
@@ -381,44 +433,63 @@ function Dashboard() {
           </Link>
         </Card>
 
-        {/* Founder Guard */}
-        <Card className="col-span-12">
-          <CardHeader
-            title="Founder Guard"
-            icon={ShieldAlert}
-            subtitle="Errori da evitare oggi"
-            action={
-              <Link to="/app/founder-guard" className="text-[12px] text-muted-foreground hover:text-foreground">
-                Apri →
-              </Link>
-            }
-          />
-          <div className="grid gap-2 md:grid-cols-3 text-[13px]">
-            {proj.founderAlerts
-              .filter((a) => !a.resolved)
-              .slice(0, 3)
-              .map((r) => (
-                <div key={r.id} className="flex items-start gap-3 rounded-xl border border-border bg-surface/60 p-3">
-                  <AlertTriangle
-                    className={`mt-0.5 h-4 w-4 ${r.severity === "Alta" ? "text-destructive" : r.severity === "Media" ? "text-warning" : "text-muted-foreground"}`}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{r.title}</div>
-                    <div className="text-[11.5px] text-muted-foreground">
-                      {r.area} · gravità {r.severity}
-                    </div>
-                  </div>
+        {/* Founder Guard — computed from real data */}
+        {(() => {
+          const realAlerts: { id: string; title: string; area: string; severity: string }[] = [];
+          if ((proj.validation?.interviews?.length ?? 0) === 0)
+            realAlerts.push({ id: "no-interviews", title: "Nessuna intervista di validazione ancora", area: "Validazione", severity: "Alta" });
+          if (proj.budgetAvailable > 0 && proj.budgetAvailable < budget.estimated)
+            realAlerts.push({ id: "budget-low", title: "Budget insufficiente per l'MVP stimato", area: "Budget", severity: "Alta" });
+          if (!proj.blueprint?.target?.trim())
+            realAlerts.push({ id: "no-target", title: "Target del progetto non ancora definito", area: "Strategia", severity: "Media" });
+          return (
+            <Card className="col-span-12">
+              <CardHeader title="Founder Guard" icon={ShieldAlert} subtitle="Errori da evitare oggi"
+                action={<Link to="/app/founder-guard" className="text-[12px] text-muted-foreground hover:text-foreground">Apri →</Link>}
+              />
+              {realAlerts.length === 0 ? (
+                <div className="rounded-xl border border-success/30 bg-success/10 p-3 text-[13px] text-success">
+                  <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> Nessun alert critico. Continua così.
                 </div>
-              ))}
-          </div>
-        </Card>
+              ) : (
+                <div className="grid gap-2 text-[13px] md:grid-cols-3">
+                  {realAlerts.map((r) => (
+                    <div key={r.id} className="flex items-start gap-3 rounded-xl border border-border bg-surface/60 p-3">
+                      <AlertTriangle className={`mt-0.5 h-4 w-4 ${r.severity === "Alta" ? "text-destructive" : "text-warning"}`} />
+                      <div className="flex-1">
+                        <div className="font-medium">{r.title}</div>
+                        <div className="text-[11.5px] text-muted-foreground">{r.area} · gravità {r.severity}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        })()}
 
         {/* Plan Utilization + Benchmark */}
         <div className="col-span-12 lg:col-span-6">
           <PlanUtilization />
         </div>
         <div className="col-span-12 lg:col-span-6">
-          <FounderBenchmark />
+          {hasJourneyProgress ? (
+            <FounderBenchmark />
+          ) : (
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+              <div className="flex items-center gap-2 text-[13.5px] font-semibold">
+                <TrendingUp className="h-4 w-4 text-brand" /> Benchmark
+              </div>
+              <div className="mt-4 flex flex-col items-center gap-3 py-4 text-center">
+                <div className="rounded-2xl bg-muted p-4 text-muted-foreground"><TrendingUp className="h-6 w-6" /></div>
+                <p className="text-[14px] font-medium">Benchmark bloccati</p>
+                <p className="text-[12.5px] text-muted-foreground">Completa il primo step del Journey per sbloccare i benchmark con altri founder</p>
+                <Link to="/app/journey" className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-white hover:opacity-90">
+                  Apri Journey →
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

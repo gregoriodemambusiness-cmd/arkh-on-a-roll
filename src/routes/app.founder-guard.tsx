@@ -35,7 +35,7 @@ function FounderGuard() {
     const b = analyzeBudget(proj);
     incrementUsage();
     const result = await askCoFounder(
-      "Analizza questo progetto e identifica i 3 rischi più critici adesso. Elenca solo i 3 rischi più urgenti con una soluzione specifica per ognuno. Testo plain, no markdown, max 200 parole.",
+      "Analizza SOLO i dati reali forniti. Se un dato non è disponibile di' esplicitamente che non è ancora nel progetto invece di inventare numeri. Struttura la risposta con: 1. Situazione attuale basata sui dati reali. 2. Almeno 3 punti critici numerati con soluzione specifica per ognuno. 3. Piano d'azione step by step con almeno 5 step concreti. 4. Una sola azione da fare nelle prossime 2 ore. Minimo 250 parole. Testo plain, no markdown, no asterischi.",
       [
         `Nome: ${proj.name}`,
         `Fase: ${proj.onboarding.stage}`,

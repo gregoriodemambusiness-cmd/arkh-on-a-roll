@@ -30,7 +30,7 @@ function BudgetGuard() {
     setAiResult(null);
     incrementUsage();
     const result = await askCoFounder(
-      "Dimmi se il budget è sufficiente, quali feature tagliare se non lo è, e come ridurre i costi del 30%. Testo plain, no markdown, max 200 parole.",
+      "Analizza SOLO i dati reali forniti. Se un dato non è disponibile di' esplicitamente che non è ancora nel progetto. Struttura la risposta con: 1. Situazione attuale del budget basata sui dati reali. 2. Almeno 3 punti critici numerati sul budget. 3. Piano d'azione step by step con almeno 5 step per ottimizzare i costi. 4. Una sola azione da fare nelle prossime 2 ore per ridurre i costi. Minimo 250 parole. Testo plain, no markdown, no asterischi.",
       [
         `Budget disponibile: ${formatEuro(b.available)}`,
         `Costo MVP stimato: ${formatEuro(b.estimated)}`,
