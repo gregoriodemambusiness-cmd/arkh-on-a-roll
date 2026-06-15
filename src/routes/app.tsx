@@ -15,7 +15,7 @@ export const Route = createFileRoute("/app")({
       // Give auth sync a moment to pull the project from DB after a hard refresh.
       // If still missing after 600ms, send to onboarding.
       await new Promise((r) => setTimeout(r, 600));
-      if (!getProject()) throw redirect({ to: "/onboarding" });
+      if (!getProject()) throw redirect({ to: "/onboarding-chat" });
     }
   },
   component: AppLayout,

@@ -26,7 +26,7 @@ export function WelcomeModal({ open, onClose, hasWorkspaces = false }: WelcomeMo
     setLoading(false);
     if (!ws) { setError("Errore durante la creazione. Riprova."); return; }
     onClose();
-    router.push("/onboarding");
+    router.push("/onboarding-chat");
   };
 
   const handleGoApp = () => {

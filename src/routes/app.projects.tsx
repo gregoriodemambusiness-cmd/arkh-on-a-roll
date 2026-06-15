@@ -10,7 +10,7 @@ function Projects() {
   const newProject = () => {
     if (confirm("Creare un nuovo progetto? Quello attuale verrà sostituito.")) {
       saveProject(null);
-      nav({ to: "/onboarding" });
+      nav({ to: "/onboarding-chat" });
     }
   };
 
@@ -24,7 +24,7 @@ function Projects() {
           <div className="rounded-2xl bg-brand/10 p-3 text-brand"><Rocket className="h-7 w-7" /></div>
           <h2 className="mt-4 font-display text-xl font-semibold">Crea il tuo primo progetto startup</h2>
           <p className="mt-1 text-[13.5px] text-muted-foreground">Inizia l'onboarding per generare blueprint, MVP, roadmap e task.</p>
-          <Link to="/onboarding" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-[13.5px] text-background hover:opacity-90">Inizia onboarding</Link>
+          <Link to="/onboarding-chat" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-[13.5px] text-background hover:opacity-90">Inizia onboarding</Link>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-3">

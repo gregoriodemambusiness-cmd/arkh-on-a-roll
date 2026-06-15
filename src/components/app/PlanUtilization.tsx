@@ -18,7 +18,7 @@ const FEATURES: Feature[] = [
     id: "onboarding",
     label: "Onboarding completato",
     check: () => !!localStorage.getItem("pilot-onboarding"),
-    href: "/onboarding",
+    href: "/onboarding-chat",
     cta: "Completa onboarding",
   },
   {

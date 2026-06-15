@@ -507,7 +507,7 @@ function EmptyState() {
         Inserisci la tua idea: PILOT AI genera blueprint, MVP, roadmap e i primi task operativi.
       </p>
       <Link
-        to="/onboarding"
+        to="/onboarding-chat"
         className="mt-6 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-2.5 text-[14px] font-medium text-background hover:opacity-90"
       >
         Inizia onboarding <ArrowRight className="h-4 w-4" />
