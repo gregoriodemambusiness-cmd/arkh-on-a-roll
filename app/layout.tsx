@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Orbitron, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "../src/styles.css";
-
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  weight: ["400", "700", "900"],
-  variable: "--font-orbitron",
-  display: "swap",
-});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body className={`${orbitron.variable} ${inter.variable}`}>{children}</body>
+      <body className={inter.variable}>{children}</body>
     </html>
   );
 }

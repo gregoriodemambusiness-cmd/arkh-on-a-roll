@@ -41,7 +41,7 @@
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
 
-  --font-display: var(--font-orbitron), "SF Pro Display", system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
   --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
 
   --shadow-glow: 0 10px 40px -10px color-mix(in oklab, var(--brand) 40%, transparent);
@@ -52,12 +52,6 @@
 /* ── Font application ──────────────────────────────────────────────────────── */
 * {
   font-family: var(--font-inter), "Inter", system-ui, sans-serif;
-}
-
-.font-display,
-h1,
-.logo-text {
-  font-family: var(--font-orbitron), sans-serif !important;
 }
 
 :root {
