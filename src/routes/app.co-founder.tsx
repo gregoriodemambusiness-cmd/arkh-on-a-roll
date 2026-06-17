@@ -1,8 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import {
-  RotateCcw, Sparkles, Loader2, AlertTriangle, Zap,
+  Sparkles, Loader2, AlertTriangle, Zap,
   Plus, ArrowUp, Paperclip, Globe, BarChart2, Layout, Plug, Presentation,
+  MoreHorizontal, CheckCircle2, ListTodo,
 } from "lucide-react";
 import { useProject, computeHealth, analyzeBudget, formatEuro } from "@/lib/projectStore";
 import { useUser } from "@/lib/mockAuth";
@@ -12,6 +13,12 @@ import { cn } from "@/lib/utils";
 import { ContextualPreview } from "@/components/app/ContextualPreview";
 
 type Msg = { role: "user" | "ai"; text: string };
+
+const SUGGESTIONS = [
+  "Valida la mia idea",
+  "Stima il budget MVP",
+  "Trova il mio target",
+];
 
 const PLUS_ITEMS = [
   { icon: Paperclip, label: "Allega file", action: "file" },
@@ -36,13 +43,7 @@ function TypingDots() {
   );
 }
 
-function PlusMenu({
-  onClose,
-  onAction,
-}: {
-  onClose: () => void;
-  onAction: (action: string) => void;
-}) {
+function PlusMenu({ onClose, onAction }: { onClose: () => void; onAction: (a: string) => void }) {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!(e.target as Element).closest("[data-plus-menu]")) onClose();
@@ -52,10 +53,7 @@ function PlusMenu({
   }, [onClose]);
 
   return (
-    <div
-      data-plus-menu
-      className="mb-2 overflow-hidden rounded-xl border border-border bg-card shadow-elegant"
-    >
+    <div data-plus-menu className="mb-2 overflow-hidden rounded-xl border border-border bg-card shadow-elegant">
       {PLUS_ITEMS.map(({ icon: Icon, label, action }) => (
         <button
           key={label}
@@ -66,6 +64,80 @@ function PlusMenu({
           {label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function hasPlanStructure(text: string): boolean {
+  return /\d+[\.\)]\s+.+[€$£]?\s*\d/.test(text) || /€\s*\d/.test(text);
+}
+
+function PlanCard({ text }: { text: string }) {
+  const lines = text.split("\n").filter((l) => /^\s*\d+[\.\)]\s/.test(l));
+  if (lines.length < 2) return null;
+  return (
+    <div className="mt-2 overflow-hidden rounded-xl border border-border bg-surface/80">
+      {lines.map((line, i) => {
+        const clean = line.replace(/^\s*\d+[\.\)]\s*/, "");
+        const euroMatch = clean.match(/€\s*[\d.,]+/);
+        const euro = euroMatch ? euroMatch[0] : null;
+        const title = euro ? clean.replace(euro, "").replace(/[-–—]\s*$/, "").trim() : clean;
+        return (
+          <div key={i} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/10 text-[11px] font-semibold text-brand">
+              {i + 1}
+            </span>
+            <span className="flex-1 text-[13px]">{title}</span>
+            {euro && <span className="text-[13px] font-semibold text-muted-foreground">{euro}</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MessageBubble({ msg, isLast, onAddToTasks }: { msg: Msg; isLast: boolean; onAddToTasks: () => void; initials: string }) {
+  const isPlan = msg.role === "ai" && hasPlanStructure(msg.text);
+  const preamble = isPlan
+    ? msg.text.split("\n").find((l) => !/^\s*\d+[\.\)]\s/.test(l) && l.trim()) || msg.text
+    : msg.text;
+
+  return (
+    <div>
+      <div className={cn("flex items-end gap-2.5", msg.role === "user" ? "flex-row-reverse" : "flex-row")}>
+        {msg.role === "ai" ? (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
+            <Sparkles className="h-3.5 w-3.5" />
+          </div>
+        ) : null}
+        <div
+          className={cn("max-w-[78%] px-4 py-3 text-[14px] leading-relaxed", msg.role === "ai" && "bg-card")}
+          style={{
+            borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+            backgroundColor: msg.role === "user" ? "#7B2FFF" : undefined,
+            color: msg.role === "user" ? "#fff" : undefined,
+            border: msg.role === "ai" ? "1px solid rgba(123,47,255,0.15)" : "none",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {isPlan ? preamble : msg.text}
+          {isPlan && <PlanCard text={msg.text} />}
+        </div>
+      </div>
+
+      {msg.role === "ai" && isPlan && isLast && (
+        <div className="ml-10 mt-2 flex gap-2">
+          <button
+            onClick={onAddToTasks}
+            className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-[12.5px] font-medium text-background hover:opacity-90"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" /> Aggiungi a Task Center
+          </button>
+          <button className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:text-foreground">
+            <ListTodo className="h-3.5 w-3.5" /> Modifica piano
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -99,7 +171,7 @@ export default function CoFounder() {
     const { score } = computeHealth(proj);
     setMsgs([{
       role: "ai",
-      text: `Benvenuto in Pilot. Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
+      text: `Ciao! Sono il tuo co-fondatore AI. Ho letto il tuo progetto "${proj.name}". La cosa piu urgente ora e validare il problema con utenti reali prima di scrivere codice. Vuoi che prepari uno script di intervista?`,
     }]);
   }, [proj]);
 
@@ -146,9 +218,10 @@ export default function CoFounder() {
     if (!proj) return;
     localStorage.removeItem(`pilot-chat-${proj.id}`);
     const { score } = computeHealth(proj);
+    initialized.current = false;
     setMsgs([{
       role: "ai",
-      text: `Benvenuto in Pilot. Sono il tuo Co-founder AI. Conosco il tuo progetto ${proj.name}. Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
+      text: `Ciao! Sono il tuo co-fondatore AI. Ho letto il tuo progetto "${proj.name}". Sei in fase ${proj.onboarding.stage} con health score ${score}/100. Da dove vuoi iniziare?`,
     }]);
   };
 
@@ -177,32 +250,24 @@ export default function CoFounder() {
 
   const handlePlusAction = (action: string) => {
     switch (action) {
-      case "file":
-        fileInputRef.current?.click();
-        break;
-      case "web":
-        setInput("[WEBSEARCH] ");
-        textareaRef.current?.focus();
-        break;
-      case "analyze":
-        send("Fai una analisi completa del mio progetto con punti di forza, criticita e piano d'azione dettagliato");
-        break;
-      case "canvas":
-        send("Aiutami a costruire il mio MVP Canvas passo per passo");
-        break;
-      case "integrations":
-        window.location.href = "/app/integrations";
-        break;
-      case "pitch":
-        send("Genera un pitch completo del mio progetto per investitori");
-        break;
+      case "file": fileInputRef.current?.click(); break;
+      case "web": setInput("[WEBSEARCH] "); textareaRef.current?.focus(); break;
+      case "analyze": send("Fai una analisi completa del mio progetto con punti di forza, criticita e piano d'azione dettagliato"); break;
+      case "canvas": send("Aiutami a costruire il mio MVP Canvas passo per passo"); break;
+      case "integrations": window.location.href = "/app/integrations"; break;
+      case "pitch": send("Genera un pitch completo del mio progetto per investitori"); break;
     }
+  };
+
+  const handleAddToTasks = () => {
+    send("Aggiungi questi task al mio Task Center e conferma quali hai salvato.");
   };
 
   const usageExhausted = !usage.allowed;
   const usageWarning = usage.limit < 999999 && usage.remaining <= Math.ceil(usage.limit * 0.2);
   const initials = user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "U";
   const canSend = !loading && !usageExhausted && !!input.trim();
+  const showSuggestions = !loading && msgs.length > 0 && msgs[msgs.length - 1].role === "ai";
 
   return (
     <div
@@ -213,15 +278,14 @@ export default function CoFounder() {
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur-sm md:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand shadow-sm">
-            <Sparkles className="h-4 w-4 text-white" />
+            <Plus className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-[14px] font-semibold">Co-founder AI</div>
-            {proj && (
-              <div className="text-[11.5px] text-muted-foreground">
-                {proj.name} · {proj.onboarding.stage}
-              </div>
-            )}
+            <div className="flex items-center gap-1.5 text-[11.5px] text-success">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+              Online · pensa come un co-fondatore
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -236,14 +300,15 @@ export default function CoFounder() {
                 ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
                 : "border-brand/30 bg-brand/10 text-brand",
             )}>
-              <Zap className="h-3 w-3" /> {usage.remaining} rimaste
+              <Zap className="h-3 w-3" /> {usage.remaining} crediti rimasti
             </span>
           ) : null}
           <button
             onClick={clearChat}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:border-foreground/20 hover:text-foreground"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-foreground"
+            title="Nuova chat"
           >
-            <RotateCcw className="h-3 w-3" /> Nuova chat
+            <MoreHorizontal className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -251,44 +316,43 @@ export default function CoFounder() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-5 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
-          {msgs.map((m, i) => (
-            <div key={i}>
-              <div className={cn("flex items-end gap-2.5", m.role === "user" ? "flex-row-reverse" : "flex-row")}>
-                {m.role === "ai" ? (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">
-                    P
-                  </div>
-                ) : (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-                    {initials}
-                  </div>
-                )}
+          {msgs.map((m, i) => {
+            const isLast = i === msgs.length - 1;
+            return m.role === "ai" ? (
+              <MessageBubble
+                key={i}
+                msg={m}
+                isLast={isLast}
+                onAddToTasks={handleAddToTasks}
+                initials={initials}
+              />
+            ) : (
+              <div key={i} className="flex flex-row-reverse items-end gap-2.5">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+                  {initials}
+                </div>
                 <div
-                  className={cn("max-w-[75%] px-4 py-3 text-[14px] leading-relaxed", m.role === "ai" && "bg-card")}
+                  className="max-w-[78%] px-4 py-3 text-[14px] leading-relaxed"
                   style={{
-                    borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                    backgroundColor: m.role === "user" ? "#7B2FFF" : undefined,
-                    color: m.role === "user" ? "#fff" : undefined,
-                    border: m.role === "ai" ? "1px solid rgba(123,47,255,0.2)" : "none",
+                    borderRadius: "18px 18px 4px 18px",
+                    backgroundColor: "#7B2FFF",
+                    color: "#fff",
                     whiteSpace: "pre-wrap",
                   }}
                 >
                   {m.text}
                 </div>
               </div>
-              {m.role === "ai" && i > 0 && msgs[i - 1]?.role === "user" && (
-                <ContextualPreview userMessage={msgs[i - 1].text} />
-              )}
-            </div>
-          ))}
+            );
+          })}
           {loading && (
             <div className="flex items-end gap-2.5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[12px] font-bold text-white">
-                P
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand">
+                <Sparkles className="h-3.5 w-3.5 text-white" />
               </div>
               <div
                 className="bg-card px-4 py-3"
-                style={{ borderRadius: "18px 18px 18px 4px", border: "1px solid rgba(123,47,255,0.2)" }}
+                style={{ borderRadius: "18px 18px 18px 4px", border: "1px solid rgba(123,47,255,0.15)" }}
               >
                 <TypingDots />
               </div>
@@ -299,13 +363,26 @@ export default function CoFounder() {
       </div>
 
       {/* Input area */}
-      <div className="shrink-0 border-t border-border/20 bg-background/95 px-4 py-3 backdrop-blur-sm md:px-6">
+      <div className="shrink-0 border-t border-border/20 bg-background/95 px-4 pb-4 pt-3 backdrop-blur-sm md:px-6">
         <div className="mx-auto max-w-3xl" data-plus-menu>
-          {menuOpen && (
-            <PlusMenu onClose={() => setMenuOpen(false)} onAction={handlePlusAction} />
+          {menuOpen && <PlusMenu onClose={() => setMenuOpen(false)} onAction={handlePlusAction} />}
+
+          {/* Suggestion pills */}
+          {showSuggestions && (
+            <div className="mb-2.5 flex flex-wrap gap-2">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-muted-foreground hover:border-brand/40 hover:text-foreground"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           )}
+
           <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface px-2.5 py-2 transition focus-within:border-brand/60">
-            {/* Plus button */}
             <button
               onClick={() => setMenuOpen((o) => !o)}
               className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-surface text-muted-foreground transition hover:border-brand/40 hover:bg-accent hover:text-foreground"
@@ -313,7 +390,6 @@ export default function CoFounder() {
               <Plus className="h-4 w-4" />
             </button>
 
-            {/* Textarea */}
             <textarea
               ref={textareaRef}
               value={input}
@@ -321,25 +397,18 @@ export default function CoFounder() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
               }}
-              placeholder={
-                usageExhausted
-                  ? "Limite chiamate raggiunto — upgrada il piano"
-                  : "Scrivi un messaggio..."
-              }
+              placeholder={usageExhausted ? "Limite chiamate raggiunto — upgrada il piano" : "Chiedi qualcosa al tuo co-fondatore..."}
               disabled={usageExhausted}
               rows={1}
               className="flex-1 resize-none bg-transparent py-1.5 text-[14px] outline-none placeholder:text-muted-foreground disabled:opacity-50"
               style={{ maxHeight: "200px" }}
             />
 
-            {/* Send button */}
             <button
               onClick={() => send()}
               disabled={!canSend}
-              className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white transition active:scale-95 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: canSend ? "#7B2FFF" : undefined,
-              }}
+              className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition active:scale-95 disabled:cursor-not-allowed"
+              style={{ backgroundColor: canSend ? "#7B2FFF" : undefined }}
             >
               {loading
                 ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
@@ -347,8 +416,12 @@ export default function CoFounder() {
               }
             </button>
           </div>
+
+          <p className="mt-2 text-center text-[11.5px] text-muted-foreground/60">
+            Ogni messaggio consuma 1 credito Co-founder AI ·{" "}
+            <a href="/app/plan" className="hover:text-brand">Aumenta i crediti</a>
+          </p>
         </div>
-        {/* Hidden file input */}
         <input ref={fileInputRef} type="file" className="hidden" />
       </div>
     </div>

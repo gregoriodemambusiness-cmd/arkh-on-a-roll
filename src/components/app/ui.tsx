@@ -76,3 +76,33 @@ export function ProgressBar({ value, tone = "brand" }: { value: number; tone?: "
     </div>
   );
 }
+
+export function ScoreRing({ value, size = 120 }: { value: number; size?: number }) {
+  const r = (size / 2) * 0.72;
+  const cx = size / 2;
+  const cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - Math.min(100, Math.max(0, value)) / 100);
+  const color = value >= 60 ? "var(--color-brand)" : value >= 40 ? "#F59E0B" : "#EF4444";
+  return (
+    <div className="relative inline-block" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="oklch(0.92 0 0)" strokeWidth={size * 0.085} />
+        <circle
+          cx={cx} cy={cy} r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={size * 0.085}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${cx} ${cy})`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-2xl font-semibold leading-none">{value}</span>
+        <span className="text-[11px] text-muted-foreground">/ 100</span>
+      </div>
+    </div>
+  );
+}

@@ -32,7 +32,7 @@ function displayName(user: MockUser | null): string {
   }
   return name.split(" ")[0] || "Founder";
 }
-import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar } from "@/components/app/ui";
+import { Card, CardHeader, PageHeader, Pill, Button, ProgressBar, ScoreRing } from "@/components/app/ui";
 import { useProject, computeHealth, analyzeBudget, completeTask, formatEuro } from "@/lib/projectStore";
 import { PLAN_BY_ID, suggestPlan, type PlanId, type PaidPlanId } from "@/lib/billing";
 import { PlanConfirmModal } from "@/components/billing/PlanConfirmModal";
@@ -164,40 +164,34 @@ function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative flex flex-col items-start justify-between gap-2 rounded-2xl border border-border/60 bg-card/90 px-4 py-3 shadow-card opacity-90 md:flex-row md:items-center"
+          className="relative flex flex-col items-start justify-between gap-3 rounded-2xl px-5 py-4 md:flex-row md:items-center"
+          style={{ background: "oklch(0.18 0.12 287)" }}
         >
           <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-brand/10 p-2 text-brand">
+            <div className="rounded-lg bg-white/10 p-2 text-white">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <div className="text-[13.5px] font-semibold">{nudge.title}</div>
-              <div className="text-[12.5px] text-muted-foreground">{nudge.desc}</div>
+              <div className="text-[13.5px] font-semibold text-white">{nudge.title}</div>
+              <div className="text-[12.5px] text-white/70">{nudge.desc}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {nudge.target === "enterprise" ? (
-              <a
-                href="/enterprise"
-                className="rounded-lg bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
-              >
+              <a href="/enterprise" className="rounded-lg bg-white px-3.5 py-2 text-[12.5px] font-medium text-foreground hover:opacity-90">
                 {nudge.cta}
               </a>
             ) : nudge.target === "studio" ? (
-              <a
-                href="/studio"
-                className="rounded-lg bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
-              >
+              <a href="/studio" className="rounded-lg bg-white px-3.5 py-2 text-[12.5px] font-medium text-foreground hover:opacity-90">
                 {nudge.cta}
               </a>
             ) : (
-              <Button onClick={() => setConfirm(nudge.target as PaidPlanId)}>{nudge.cta}</Button>
+              <button onClick={() => setConfirm(nudge.target as PaidPlanId)}
+                className="rounded-lg bg-white px-3.5 py-2 text-[12.5px] font-medium text-foreground hover:opacity-90">
+                {nudge.cta}
+              </button>
             )}
-            <button
-              onClick={() => setDismissed(true)}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="Chiudi"
-            >
+            <button onClick={() => setDismissed(true)} className="rounded-lg p-1.5 text-white/60 hover:text-white" aria-label="Chiudi">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -247,20 +241,26 @@ function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.05 }}
-                  className="group flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface/60 p-3 hover:border-foreground/20"
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-surface/60 p-3 hover:border-foreground/20"
                 >
-                  <span className={`h-2 w-2 rounded-full ${i === 0 ? "bg-brand" : "bg-muted-foreground/40"}`} />
+                  <button
+                    onClick={() => completeTask(t.id)}
+                    className="h-5 w-5 shrink-0 rounded-full border-2 border-border transition hover:border-brand"
+                    aria-label="Completa task"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="text-[13.5px] font-medium">{t.title}</div>
                     <div className="text-[11.5px] text-muted-foreground">
                       {t.duration} · Output atteso: {t.output}
                     </div>
                   </div>
-                  <Pill tone={t.priority === "Alta" ? "warn" : "muted"}>{t.priority}</Pill>
-                  <Button variant="secondary" onClick={() => nav({ to: "/app/co-founder" })}>
-                    Chiedi all'AI
-                  </Button>
-                  <Button onClick={() => completeTask(t.id)}>Completa</Button>
+                  <Pill tone={t.priority === "Alta" ? "warn" : "muted"}>{t.priority?.toUpperCase()}</Pill>
+                  <button
+                    onClick={() => nav({ to: "/app/co-founder" })}
+                    className="shrink-0 rounded-lg bg-brand/10 px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-brand/20"
+                  >
+                    + AI
+                  </button>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -274,32 +274,27 @@ function Dashboard() {
             title="Startup Health Score"
             icon={BarChart3}
             subtitle={`${completed}/${proj.tasks.length} task completati`}
+            action={
+              <Pill tone={score >= 60 ? "ok" : score >= 40 ? "brand" : "warn"}>
+                {score >= 60 ? "In salute" : score >= 40 ? "In progresso" : "Da rinforzare"}
+              </Pill>
+            }
           />
-          <div className="flex items-end gap-3">
-            <motion.div
-              key={score}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="font-display text-5xl font-semibold"
-            >
-              {score}
+          <div className="flex items-center gap-5">
+            <motion.div key={score} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <ScoreRing value={score} size={100} />
             </motion.div>
-            <div className="mb-2 text-[12px] text-muted-foreground">/ 100</div>
-            <Pill tone={score >= 60 ? "ok" : score >= 40 ? "brand" : "warn"}>
-              {score >= 60 ? "In salute" : score >= 40 ? "In progresso" : "Da rinforzare"}
-            </Pill>
-          </div>
-          <ProgressBar value={score} />
-          <div className="mt-4 grid grid-cols-2 gap-2 text-[12.5px]">
-            {breakdown.map(({ key, value }) => (
-              <div key={key} className="rounded-lg border border-border bg-surface/60 p-2">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{key}</span>
-                  <span>{value}</span>
+            <div className="flex-1 space-y-2">
+              {breakdown.map(({ key, value }) => (
+                <div key={key}>
+                  <div className="mb-1 flex justify-between text-[12px]">
+                    <span className="text-muted-foreground">{key}</span>
+                    <span className="font-medium">{value}</span>
+                  </div>
+                  <ProgressBar value={value} tone={value < 60 ? "warn" : "brand"} />
                 </div>
-                <ProgressBar value={value} tone={value < 60 ? "warn" : "brand"} />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </Card>
 
