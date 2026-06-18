@@ -64,7 +64,11 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
         startAuthSync();
 
         sessionStorage.setItem("pilot-welcome", "1");
-        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding";
+        const { hasAnyWorkspace } = await import("@/lib/workspaces");
+        const hasWs = await hasAnyWorkspace();
+        const dest = hasWs
+          ? (localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat")
+          : "/workspace-setup";
         router.push(dest);
       }
     } catch (e: unknown) {

@@ -6,6 +6,7 @@ import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { startAuthSync } from "@/lib/authSync";
+import { hasAnyWorkspace } from "@/lib/workspaces";
 
 const CORRECT_CODE = "000000"; // "000-000" without dash
 
@@ -100,9 +101,12 @@ export default function VerifyPage() {
       sessionStorage.removeItem("pilot-pending-auth");
       startAuthSync();
       setStatus("success");
+      const hasWs = await hasAnyWorkspace();
       setTimeout(() => {
         sessionStorage.setItem("pilot-welcome", "1");
-        const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat";
+        const dest = hasWs
+          ? (localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat")
+          : "/workspace-setup";
         router.push(dest);
       }, 900);
     } catch (e: unknown) {
@@ -166,9 +170,12 @@ export default function VerifyPage() {
               </div>
               <div className="flex w-full flex-col gap-2">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     sessionStorage.setItem("pilot-welcome", "1");
-                    const dest = localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat";
+                    const hasWs = await hasAnyWorkspace();
+                    const dest = hasWs
+                      ? (localStorage.getItem("pilot-onboarding-complete") ? "/" : "/onboarding-chat")
+                      : "/workspace-setup";
                     router.push(dest);
                   }}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-[14px] font-medium text-background hover:opacity-90"
