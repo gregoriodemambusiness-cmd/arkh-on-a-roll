@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { PLAN_BY_ID, type PlanId, type PaidPlanId, type BillingPeriod, getPlanPrice } from "@/lib/billing";
-import { createCheckoutSession } from "@/lib/checkout.functions";
+import { createCheckoutSession, isLiveMode } from "@/lib/checkout.functions";
 import { setPlan } from "@/lib/mockAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthRequiredModal } from "./AuthRequiredModal";
@@ -19,6 +19,11 @@ export function PlanConfirmModal({ plan, billing = "monthly", onClose }: Props) 
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
   const [needsAuth, setNeedsAuth] = useState<PaidPlanId | null>(null);
+  const [live, setLive] = useState(false);
+
+  useEffect(() => {
+    isLiveMode().then(setLive).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (plan) {
@@ -101,14 +106,16 @@ export function PlanConfirmModal({ plan, billing = "monthly", onClose }: Props) 
           </button>
 
           <div className="p-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-brand" /> Modalità test / sandbox
+            <div className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-0.5 text-[11px] ${live ? "border-success/30 bg-success/10 text-success" : "border-border bg-surface text-muted-foreground"}`}>
+              <Sparkles className={`h-3 w-3 ${live ? "text-success" : "text-brand"}`} />
+              {live ? "Pagamento reale · sicuro" : "Modalità test / sandbox"}
             </div>
             <h2 className="mt-3 font-display text-xl font-semibold tracking-tight">
               Conferma il piano
             </h2>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Stai per attivare <b className="text-foreground">{p.name}</b>. Pagamento in modalità test, nessun addebito reale.
+              Stai per attivare <b className="text-foreground">{p.name}</b>.{" "}
+              {live ? "Il pagamento è reale e sicuro tramite Stripe." : "Pagamento in modalità test, nessun addebito reale."}
             </p>
 
             <div className="mt-5 rounded-2xl border border-border bg-surface/60 p-4">
@@ -179,6 +186,8 @@ export function PlanConfirmModal({ plan, billing = "monthly", onClose }: Props) 
               >
                 {loading ? (
                   <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Apertura checkout…</>
+                ) : live ? (
+                  <>Vai al checkout</>
                 ) : (
                   <>Vai al checkout test</>
                 )}
@@ -199,7 +208,9 @@ export function PlanConfirmModal({ plan, billing = "monthly", onClose }: Props) 
               </button>
             </div>
             <p className="mt-3 text-center text-[11px] text-muted-foreground">
-              Pagamento in modalità test/sandbox · nessun addebito reale
+              {live
+                ? "Pagamento sicuro via Stripe · puoi annullare in qualsiasi momento"
+                : "Pagamento in modalità test/sandbox · nessun addebito reale"}
             </p>
           </div>
         </motion.div>

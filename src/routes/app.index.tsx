@@ -280,16 +280,16 @@ function Dashboard() {
               </Pill>
             }
           />
-          <div className="flex items-center gap-5">
-            <motion.div key={score} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-              <ScoreRing value={score} size={100} />
+          <div className="flex items-center gap-6">
+            <motion.div key={score} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="shrink-0">
+              <ScoreRing value={score} size={130} />
             </motion.div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 min-w-0 space-y-2.5">
               {breakdown.map(({ key, value }) => (
                 <div key={key}>
                   <div className="mb-1 flex justify-between text-[12px]">
                     <span className="text-muted-foreground">{key}</span>
-                    <span className="font-medium">{value}</span>
+                    <span className="font-medium tabular-nums">{value}</span>
                   </div>
                   <ProgressBar value={value} tone={value < 60 ? "warn" : "brand"} />
                 </div>
@@ -312,11 +312,15 @@ function Dashboard() {
             </div>
             <div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Fase</div>
-              <div className="text-[14px]">{proj.onboarding.stage}</div>
+              <div className="mt-0.5">
+                <span className="inline-flex items-center rounded-full bg-brand/10 px-2.5 py-0.5 text-[12.5px] font-medium text-brand">
+                  {proj.onboarding.stage}
+                </span>
+              </div>
             </div>
             <div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Prossima azione</div>
-              <div className="text-[14px]">{nextAction?.title || "Pianifica la prossima fase"}</div>
+              <div className="mt-0.5 text-[14px] font-semibold">{nextAction?.title || "Pianifica la prossima fase"}</div>
             </div>
             <div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ultima modifica</div>
@@ -350,11 +354,20 @@ function Dashboard() {
             </div>
           ) : (
           <>
-          <div className="grid grid-cols-2 gap-3 text-[13px]">
-            <Stat label="Disponibile" value={formatEuro(budget.available)} />
-            <Stat label="MVP stimato" value={formatEuro(budget.estimated)} tone={budget.risk === "alto" ? "warn" : undefined} />
-            <Stat label="Differenza" value={`${budget.delta >= 0 ? "+" : ""}${formatEuro(Math.abs(budget.delta)).replace("€ ", "€ ")}`} tone={budget.delta < 0 ? "warn" : undefined} />
-            <Stat label="Rischio" value={budget.risk.toUpperCase()} tone={budget.risk !== "basso" ? "warn" : undefined} />
+          <div className="grid grid-cols-2 gap-3">
+            <BudgetStat label="Disponibile" value={formatEuro(budget.available)} />
+            <BudgetStat label="MVP stimato" value={formatEuro(budget.estimated)} />
+            <BudgetStat
+              label="Differenza"
+              value={`${budget.delta >= 0 ? "+" : ""}${formatEuro(Math.abs(budget.delta))}`}
+              valueClass={budget.delta >= 0 ? "text-success" : "text-destructive"}
+            />
+            <BudgetStat
+              label="Rischio"
+              dot={budget.risk === "basso" ? "success" : budget.risk === "medio" ? "warn" : "destructive"}
+              value={budget.risk.toUpperCase()}
+              valueClass={budget.risk === "basso" ? "text-success" : budget.risk === "medio" ? "text-warning" : "text-destructive"}
+            />
           </div>
           <div className={`mt-3 rounded-lg border p-3 text-[12.5px] ${budget.risk === "alto" ? "border-warning/30 bg-warning/10 text-warning" : budget.risk === "medio" ? "border-brand/30 bg-brand/5 text-foreground" : "border-success/30 bg-success/10 text-success"}`}>
             <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />{budget.recommendation}
@@ -516,6 +529,19 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "wa
     <div className={`rounded-xl border border-border bg-surface/60 p-3 ${tone === "warn" ? "border-warning/30" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className={`mt-0.5 font-display text-lg font-semibold ${tone === "warn" ? "text-warning" : ""}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function BudgetStat({ label, value, dot, valueClass }: { label: string; value: string; dot?: "success" | "warn" | "destructive"; valueClass?: string }) {
+  const dotColor = dot === "success" ? "bg-success" : dot === "warn" ? "bg-warning" : dot === "destructive" ? "bg-destructive" : undefined;
+  return (
+    <div className="rounded-xl border border-border bg-surface/60 p-3">
+      <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-1 flex items-center gap-1.5 font-display text-xl font-semibold ${valueClass || ""}`}>
+        {dotColor && <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${dotColor}`} />}
         {value}
       </div>
     </div>

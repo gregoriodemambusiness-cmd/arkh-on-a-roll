@@ -8,6 +8,7 @@ import { PLAN_BY_ID, type PaidPlanId } from "@/lib/billing";
 import { setPlan } from "@/lib/mockAuth";
 import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
+import { updateMyPlan, recordPayment } from "@/lib/profile.functions";
 
 function PaymentSuccess() {
   const searchParams = useSearchParams();
@@ -38,8 +39,26 @@ function PaymentSuccess() {
       }
       setStatus("saving");
       try {
-        // Mirror into local cache so the topbar / Plan & Usage refresh instantly.
-        setPlan(plan, { amount: PLAN_BY_ID[plan as PaidPlanId].price, mode: demo ? "demo" : "test", sessionId: session_id });
+        const userId = data.session.user.id;
+        const planMeta = PLAN_BY_ID[plan as PaidPlanId];
+
+        // 1. Persist to Supabase (authoritative)
+        await updateMyPlan({
+          data: { userId, plan, stripe_session_id: session_id },
+        });
+        // 2. Record payment for history
+        await recordPayment({
+          data: {
+            userId,
+            plan,
+            amount: planMeta.price,
+            currency: "eur",
+            stripe_session_id: session_id,
+            status: demo ? "demo" : "paid",
+          },
+        });
+        // 3. Mirror into local cache so the topbar / Plan & Usage refresh instantly
+        setPlan(plan, { amount: planMeta.price, mode: demo ? "demo" : "test", sessionId: session_id });
         if (!cancelled) setStatus("done");
       } catch (e: unknown) {
         console.error(e);
