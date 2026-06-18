@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   ArrowRight, Sparkles, ShieldCheck, Wallet, Map, ListChecks, Target,
   Check, Star, Quote, Lightbulb, Building2, GraduationCap, Rocket, Zap,
-  BarChart3, Cog, TrendingUp, Clock, Users,
+  BarChart3, Cog, TrendingUp, Clock, Users, FlaskConical,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
 import { useTheme } from "@/lib/theme";
@@ -105,6 +105,9 @@ function PublicNav() {
           ) : (
             <>
               <Link to="/login" className="hidden rounded-lg px-3 py-1.5 text-[13.5px] font-medium text-muted-foreground hover:text-foreground sm:inline-flex">Accedi</Link>
+              <Link to="/demo" className="hidden items-center gap-1.5 rounded-lg border border-brand/40 bg-brand/8 px-3.5 py-1.5 text-[13.5px] font-medium text-brand hover:bg-brand/14 sm:inline-flex">
+                <FlaskConical className="h-3.5 w-3.5" /> Testa la Demo
+              </Link>
               <Link to="/signup" className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3.5 py-1.5 text-[13.5px] font-medium text-background hover:opacity-90">
                 Inizia gratis <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -144,6 +147,9 @@ function Hero() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link to="/signup" className="inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-[14px] font-medium text-background shadow-elegant hover:opacity-90">
               Inizia gratis <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link to="/demo" className="inline-flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/8 px-5 py-3 text-[14px] font-medium text-brand hover:bg-brand/14">
+              <FlaskConical className="h-4 w-4" /> Prova senza registrarti
             </Link>
             <a href="#demo" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface/70 px-5 py-3 text-[14px] font-medium text-foreground backdrop-blur hover:bg-surface">
               Guarda come funziona
@@ -854,6 +860,12 @@ function PricingCard({
           {plan.cta}
         </button>
       ) : null}
+      <Link
+        to="/demo"
+        className="mt-2 flex w-full items-center justify-center gap-1 text-[11.5px] text-muted-foreground hover:text-brand"
+      >
+        <FlaskConical className="h-3 w-3" /> Prova gratis senza registrarti
+      </Link>
     </div>
   );
 

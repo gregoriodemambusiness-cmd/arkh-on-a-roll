@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isDemoMode, getDemoWorkspace } from "./demo-mode";
 
 export type Workspace = {
   id: string;
@@ -41,6 +42,8 @@ async function uniqueCode(): Promise<string> {
 // ── CRUD ────────────────────────────────────────────────────────────────────
 
 export async function listWorkspaces(): Promise<Workspace[]> {
+  if (isDemoMode()) return [getDemoWorkspace() as Workspace];
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
@@ -63,6 +66,8 @@ export async function listWorkspaces(): Promise<Workspace[]> {
 }
 
 export async function hasAnyWorkspace(): Promise<boolean> {
+  if (isDemoMode()) return true;
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
